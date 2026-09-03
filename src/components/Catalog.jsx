@@ -454,10 +454,12 @@ export function Catalog({ products, onSelectProduct, onGoToZebra }) {
       )}
 
       {/* 6. Product Detail & Barcode Modal */}
-      {selectedItem && (
-        <div className="px-drawer-overlay" onClick={() => setSelectedItem(null)}>
-          <div className="px-drawer-card" style={{ maxWidth: "680px", maxHeight: "92vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
+      {selectedItem && (() => {
+        const liveItem = products.find(p => p.sku === selectedItem.sku) || selectedItem;
+        return (
+          <div className="px-drawer-overlay" onClick={() => setSelectedItem(null)}>
+            <div className="px-drawer-card" style={{ maxWidth: "680px", maxHeight: "92vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
               <div>
                 <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", marginBottom: "0.3rem" }}>
                   <span className="px-chip" style={{ color: "var(--px-blue)", fontWeight: "700" }}>
@@ -530,20 +532,20 @@ export function Catalog({ products, onSelectProduct, onGoToZebra }) {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.6rem", marginBottom: "1rem" }}>
               <div className="px-card" style={{ padding: "0.75rem" }}>
                 <span style={{ fontSize: "0.7rem", color: "var(--px-muted)", textTransform: "uppercase", fontWeight: "700" }}>Existencias</span>
-                <div className="px-mono" style={{ fontSize: "1.15rem", fontWeight: "800", color: selectedItem.stock > 0 ? "var(--px-green)" : "var(--px-red)" }}>
-                  {selectedItem.stock} {selectedItem.uom || "PCS"}
+                <div className="px-mono" style={{ fontSize: "1.15rem", fontWeight: "800", color: liveItem.stock > 0 ? "var(--px-green)" : "var(--px-red)" }}>
+                  {liveItem.stock} {liveItem.uom || "PCS"}
                 </div>
               </div>
               <div className="px-card" style={{ padding: "0.75rem" }}>
                 <span style={{ fontSize: "0.7rem", color: "var(--px-muted)", textTransform: "uppercase", fontWeight: "700" }}>Costo Unit.</span>
                 <div className="px-mono" style={{ fontSize: "1.05rem", fontWeight: "800", color: "var(--px-text-strong)" }}>
-                  {formatCOP(selectedItem.unitCost)}
+                  {formatCOP(liveItem.unitCost)}
                 </div>
               </div>
               <div className="px-card" style={{ padding: "0.75rem" }}>
                 <span style={{ fontSize: "0.7rem", color: "var(--px-muted)", textTransform: "uppercase", fontWeight: "700" }}>Valuación FIFO</span>
                 <div className="px-mono" style={{ fontSize: "1.05rem", fontWeight: "800", color: "var(--px-text-strong)" }}>
-                  {formatCOP(selectedItem.totalValue)}
+                  {formatCOP(liveItem.totalValue)}
                 </div>
               </div>
             </div>
@@ -604,7 +606,8 @@ export function Catalog({ products, onSelectProduct, onGoToZebra }) {
 
           </div>
         </div>
-      )}
+        );
+      })()}
 
     </div>
   );

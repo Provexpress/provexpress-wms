@@ -65,6 +65,20 @@ export function InventoryProvider({ children }) {
 
   useEffect(() => {
     loadServerData();
+
+    // Auto-sync every 8 seconds to synchronize Zebra scans with PC portal in real time
+    const intervalId = setInterval(() => {
+      loadServerData();
+    }, 8000);
+
+    // Refresh immediately when window/tab is focused
+    const onFocus = () => loadServerData();
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener("focus", onFocus);
+    };
   }, [loadServerData]);
 
   const refreshLocalData = useCallback(async () => {
