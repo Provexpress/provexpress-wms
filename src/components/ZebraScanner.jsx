@@ -9,8 +9,11 @@ import { storageService } from "../services/storage";
 import { bcService } from "../services/bc-api";
 import { validateLocalBarcode } from "../services/barcode-validation";
 import { BarcodeGenerator } from "./BarcodeGenerator";
+import { authService } from "../services/auth";
 
 export function ZebraScanner({ products, onMovementRegistered, initialProduct, onClearInitialProduct }) {
+  const currentUser = authService.getCurrentUser();
+  const isOperator = currentUser?.role === "OPERADOR";
   const [mode, setMode] = useState("ENTRADA"); // 'ENTRADA' | 'CONTEO'
   const [laserInput, setLaserInput] = useState("");
   const [matchedProduct, setMatchedProduct] = useState(initialProduct || null);
@@ -362,57 +365,73 @@ export function ZebraScanner({ products, onMovementRegistered, initialProduct, o
   const stockDelta = matchedProduct ? (quantity - (matchedProduct.stock || 0)) : 0;
 
   return (
-    <div style={{ width: "100%", maxWidth: "600px", margin: "0 auto", padding: "0.65rem 0.55rem", boxSizing: "border-box", overflowX: "hidden" }}>
+    <div style={{ width: "100%", maxWidth: "600px", margin: "0 auto", padding: "0.5rem 0.5rem 5rem 0.5rem", boxSizing: "border-box", overflowX: "hidden" }}>
       
-      {/* Top Mode Selector Neumorphic (Entrada vs Conteo) */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem", marginBottom: "0.85rem" }}>
-        <button 
-          type="button"
-          className={`px-btn ${mode === "ENTRADA" ? "px-btn--primary" : "px-btn--secondary"}`}
-          onClick={() => { setMode("ENTRADA"); setMatchedProduct(null); setScannedSerials([]); setQuantity(1); }}
-          style={{ 
-            background: mode === "ENTRADA" ? "var(--px-gradient-green)" : undefined, 
-            color: mode === "ENTRADA" ? "#ffffff" : "var(--px-text-strong)", 
-            minHeight: "48px", fontWeight: "800", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", fontSize: "0.9rem", borderRadius: "var(--px-radius-md)"
-          }}
-        >
-          <ArrowDownLeft size={18} /> Entrada (Recepción)
-        </button>
+      {/* 1. Top Header: Operator focused single header vs Supervisor mode switcher */}
+      {isOperator ? (
+        <div style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "space-between", 
+          padding: "0.55rem 0.75rem", 
+          background: "var(--px-surface)", 
+          borderRadius: "var(--px-radius-md)", 
+          border: "1px solid var(--px-border)", 
+          marginBottom: "0.65rem", 
+          boxShadow: "var(--px-neu-flat)" 
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "rgba(16, 185, 129, 0.15)", color: "var(--px-green)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <ArrowDownLeft size={18} />
+            </div>
+            <div>
+              <div style={{ fontWeight: "800", fontSize: "0.92rem", color: "var(--px-text-strong)" }}>Recepción de Tóners</div>
+              <div style={{ fontSize: "0.7rem", color: "var(--px-muted)" }}>Bodega Cota • Terminal Zebra TC22</div>
+            </div>
+          </div>
+          <span className="px-chip" style={{ color: "var(--px-green)", fontWeight: "800", background: "rgba(16, 185, 129, 0.1)", fontSize: "0.72rem" }}>
+            <span className="px-live-dot" style={{ width: "6px", height: "6px" }}></span> Láser Listo
+          </span>
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", marginBottom: "0.65rem" }}>
+          <button 
+            type="button"
+            className={`px-btn ${mode === "ENTRADA" ? "px-btn--primary" : "px-btn--secondary"}`}
+            onClick={() => { setMode("ENTRADA"); setMatchedProduct(null); setScannedSerials([]); setQuantity(1); }}
+            style={{ 
+              background: mode === "ENTRADA" ? "var(--px-gradient-green)" : undefined, 
+              color: mode === "ENTRADA" ? "#ffffff" : "var(--px-text-strong)", 
+              minHeight: "44px", fontWeight: "800", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem", fontSize: "0.85rem", borderRadius: "var(--px-radius-md)"
+            }}
+          >
+            <ArrowDownLeft size={16} /> Recepción
+          </button>
 
-        <button 
-          type="button"
-          className={`px-btn ${mode === "CONTEO" ? "px-btn--primary" : "px-btn--secondary"}`}
-          onClick={() => { setMode("CONTEO"); setMatchedProduct(null); setScannedSerials([]); setQuantity(1); }}
-          style={{ 
-            background: mode === "CONTEO" ? "var(--px-gradient-purple)" : undefined, 
-            color: mode === "CONTEO" ? "#ffffff" : "var(--px-text-strong)", 
-            minHeight: "48px", fontWeight: "800", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", fontSize: "0.9rem", borderRadius: "var(--px-radius-md)"
-          }}
-        >
-          <ClipboardList size={18} /> Conteo Físico
-        </button>
-      </div>
-
-      {/* Pilot Inventory Active Notice */}
-      <div style={{ marginBottom: "0.65rem", padding: "0.45rem 0.75rem", background: "rgba(106, 63, 160, 0.08)", border: "1px solid rgba(106, 63, 160, 0.2)", borderRadius: "10px", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.75rem" }}>
-        <span style={{ color: "var(--px-text-strong)", fontWeight: "700", display: "flex", alignItems: "center", gap: "4px" }}>
-          <Sparkles size={14} color="var(--px-purple)" />
-          <span>Prueba Piloto: <strong>Suministros y Tecnología</strong></span>
-        </span>
-        <span className="px-chip" style={{ fontSize: "0.68rem", background: "#fff" }}>
-          Código Global / GTIN Activo
-        </span>
-      </div>
+          <button 
+            type="button"
+            className={`px-btn ${mode === "CONTEO" ? "px-btn--primary" : "px-btn--secondary"}`}
+            onClick={() => { setMode("CONTEO"); setMatchedProduct(null); setScannedSerials([]); setQuantity(1); }}
+            style={{ 
+              background: mode === "CONTEO" ? "var(--px-gradient-purple)" : undefined, 
+              color: mode === "CONTEO" ? "#ffffff" : "var(--px-text-strong)", 
+              minHeight: "44px", fontWeight: "800", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem", fontSize: "0.85rem", borderRadius: "var(--px-radius-md)"
+            }}
+          >
+            <ClipboardList size={16} /> Conteo Físico
+          </button>
+        </div>
+      )}
 
       {/* Status Alerts */}
       {successMsg && (
-        <div className="px-badge px-badge--success" style={{ width: "100%", padding: "0.75rem", fontSize: "0.85rem", marginBottom: "0.65rem", textAlign: "center", display: "block", boxSizing: "border-box" }}>
+        <div className="px-badge px-badge--success" style={{ width: "100%", padding: "0.65rem", fontSize: "0.82rem", marginBottom: "0.65rem", textAlign: "center", display: "block", boxSizing: "border-box" }}>
           {successMsg}
         </div>
       )}
 
       {errorMsg && (
-        <div className="px-badge px-badge--danger" style={{ width: "100%", padding: "0.75rem", fontSize: "0.85rem", marginBottom: "0.65rem", textAlign: "center", display: "block", boxSizing: "border-box" }}>
+        <div className="px-badge px-badge--danger" style={{ width: "100%", padding: "0.65rem", fontSize: "0.82rem", marginBottom: "0.65rem", textAlign: "center", display: "block", boxSizing: "border-box" }}>
           {errorMsg}
         </div>
       )}
@@ -421,24 +440,24 @@ export function ZebraScanner({ products, onMovementRegistered, initialProduct, o
           SCREEN STATE 1: WAITING FOR PRODUCT SCAN (AUTO-TRIGGER POINT & SHOOT)
           ========================================================================= */}
       {!matchedProduct && (
-        <div className="px-glass-panel" style={{ padding: "1rem", textAlign: "center", position: "relative", marginBottom: "0.75rem" }}>
+        <div className="px-glass-panel" style={{ padding: "0.85rem", textAlign: "center", position: "relative", marginBottom: "0.75rem" }}>
           
           {/* Laser Receiver Box with Auto-Trigger & Flash */}
           <div style={{ 
-            padding: "0.85rem", 
+            padding: "0.75rem 0.65rem", 
             background: laserFlash ? "rgba(22, 163, 74, 0.25)" : "rgba(22, 163, 74, 0.06)", 
             border: `2px solid ${laserFlash ? "var(--px-green)" : "var(--px-green)"}`, 
             borderRadius: "14px", 
-            marginBottom: "0.85rem",
+            marginBottom: "0.75rem",
             transition: "background 0.2s ease"
           }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem", color: "var(--px-green)", fontWeight: "800", fontSize: "0.95rem", marginBottom: "0.4rem" }}>
-              <span className="px-live-dot" style={{ width: "10px", height: "10px" }}></span>
-              <span>Láser Zebra Listo: Código de Barras o SKU</span>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem", color: "var(--px-green)", fontWeight: "800", fontSize: "0.92rem", marginBottom: "0.45rem" }}>
+              <span className="px-live-dot" style={{ width: "8px", height: "8px" }}></span>
+              <span>Láser TC22 Listo: Código o SKU</span>
             </div>
 
-            {/* DIRECT HARDWARE SCAN RECEIVER INPUT WITH AUTO-SUBMIT */}
-            <form onSubmit={(e) => { e.preventDefault(); processSkuScan(laserInput); }} style={{ display: "flex", gap: "0.45rem", alignItems: "stretch", width: "100%" }}>
+            {/* DIRECT HARDWARE SCAN RECEIVER INPUT WITH COMPACT SEARCH BUTTON */}
+            <form onSubmit={(e) => { e.preventDefault(); processSkuScan(laserInput); }} style={{ display: "flex", gap: "0.4rem", alignItems: "stretch", width: "100%" }}>
               <div style={{ position: "relative", flex: "1 1 auto", minWidth: 0 }}>
                 <input 
                   ref={skuReceiverRef}
@@ -448,7 +467,7 @@ export function ZebraScanner({ products, onMovementRegistered, initialProduct, o
                   autoCorrect="off"
                   spellCheck="false"
                   autoCapitalize="characters"
-                  placeholder={isVirtualKeyboardActive ? "Escribe SKU o código..." : "Apunta el láser al código..."}
+                  placeholder={isVirtualKeyboardActive ? "Escribe SKU o código..." : "Escanear código o SKU..."}
                   value={laserInput}
                   onChange={handleSkuInputChange}
                   onKeyDown={(e) => {
@@ -459,13 +478,13 @@ export function ZebraScanner({ products, onMovementRegistered, initialProduct, o
                   }}
                   className="px-input"
                   style={{ 
-                    height: "48px", 
-                    fontSize: "0.92rem", 
+                    height: "46px", 
+                    fontSize: "0.95rem", 
                     fontWeight: "800", 
                     borderRadius: "12px", 
                     textAlign: "left",
-                    paddingLeft: "2.3rem",
-                    paddingRight: "0.75rem",
+                    paddingLeft: "2.2rem",
+                    paddingRight: "0.6rem",
                     border: `1.5px solid ${isVirtualKeyboardActive ? "var(--px-blue)" : "var(--px-green)"}`,
                     background: "var(--px-surface-sunken)",
                     boxSizing: "border-box",
@@ -473,7 +492,7 @@ export function ZebraScanner({ products, onMovementRegistered, initialProduct, o
                   }}
                 />
                 <span style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
-                  <span className="px-live-dot" style={{ width: "8px", height: "8px" }}></span>
+                  <Barcode size={16} color="var(--px-green)" />
                 </span>
               </div>
 
@@ -482,24 +501,34 @@ export function ZebraScanner({ products, onMovementRegistered, initialProduct, o
                 className="px-btn px-btn--primary"
                 style={{ 
                   background: "var(--px-gradient-brand)", 
-                  minWidth: "80px", 
+                  width: "46px",
+                  minWidth: "46px", 
+                  height: "46px",
                   borderRadius: "12px", 
-                  fontWeight: "800",
-                  fontSize: "0.85rem",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: 0,
                   flexShrink: 0
                 }}
+                title="Buscar código o SKU"
               >
-                <Search size={15} /> Buscar
+                <Search size={18} />
               </button>
             </form>
 
-            <div style={{ fontSize: "0.74rem", color: "var(--px-muted)", marginTop: "0.4rem" }}>
-              ⚡ Reconoce códigos de fábrica EAN-13, UPC, GTIN y SKU interno
+            <div style={{ fontSize: "0.72rem", color: "var(--px-muted)", marginTop: "0.35rem" }}>
+              ⚡ Compatible con Códigos de Fábrica (EAN-13, UPC) y SKU Interno
             </div>
           </div>
 
-          {/* Action Row: Toggle Soft Keyboard, Search Catalog & Create New Product */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.45rem", marginBottom: "0.85rem" }}>
+          {/* Action Row: Symmetrical 2 buttons for Operator, 3 for Supervisor */}
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: isOperator ? "1fr 1fr" : "1fr 1fr 1fr", 
+            gap: "0.45rem", 
+            marginBottom: "0.75rem" 
+          }}>
             <button 
               type="button" 
               className={`px-btn ${isVirtualKeyboardActive ? "px-btn--primary" : "px-btn--secondary"}`}
@@ -510,7 +539,7 @@ export function ZebraScanner({ products, onMovementRegistered, initialProduct, o
                   if (skuReceiverRef.current) skuReceiverRef.current.focus();
                 }, 100);
               }}
-              style={{ minHeight: "42px", borderRadius: "12px", fontSize: "0.76rem", fontWeight: "700", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.35rem" }}
+              style={{ minHeight: "42px", borderRadius: "12px", fontSize: "0.78rem", fontWeight: "700", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.35rem" }}
             >
               <Keyboard size={15} /> {isVirtualKeyboardActive ? "Ocultar Teclado" : "Teclado"}
             </button>
@@ -519,19 +548,21 @@ export function ZebraScanner({ products, onMovementRegistered, initialProduct, o
               type="button" 
               className="px-btn px-btn--secondary"
               onClick={() => setShowCatalogPicker(true)}
-              style={{ minHeight: "42px", borderRadius: "12px", fontSize: "0.76rem", fontWeight: "700", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.35rem" }}
+              style={{ minHeight: "42px", borderRadius: "12px", fontSize: "0.78rem", fontWeight: "700", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.35rem" }}
             >
               <Search size={15} /> Catálogo
             </button>
 
-            <button 
-              type="button" 
-              className="px-btn px-btn--primary"
-              onClick={() => handleOpenCreateModal("")}
-              style={{ minHeight: "42px", borderRadius: "12px", fontSize: "0.76rem", fontWeight: "800", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.35rem", background: "var(--px-gradient-green)" }}
-            >
-              <PlusCircle size={15} /> Nuevo SKU
-            </button>
+            {!isOperator && (
+              <button 
+                type="button" 
+                className="px-btn px-btn--primary"
+                onClick={() => handleOpenCreateModal("")}
+                style={{ minHeight: "42px", borderRadius: "12px", fontSize: "0.78rem", fontWeight: "800", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.35rem", background: "var(--px-gradient-green)" }}
+              >
+                <PlusCircle size={15} /> Nuevo SKU
+              </button>
+            )}
           </div>
 
           {/* Top Real Inventory Toners for Fast Access */}

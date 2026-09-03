@@ -284,8 +284,8 @@ export function MainLayout({ currentUser, onLogout, activeRoute, onNavigate, isD
             </div>
           </div>
 
-          {/* Topbar Right Controls */}
-          <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
+          {/* Topbar Right Controls (Responsive & Compact for Zebra TC22) */}
+          <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", flexShrink: 0 }}>
             
             {/* Sync Button */}
             <button 
@@ -293,21 +293,21 @@ export function MainLayout({ currentUser, onLogout, activeRoute, onNavigate, isD
               onClick={handleManualSync}
               disabled={isSyncing}
               title="Sincronizar existencias con Business Central Cloud"
-              style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", padding: "0.25rem 0.55rem" }}
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.25rem", padding: "0.25rem 0.45rem", minHeight: "32px" }}
             >
-              <RefreshCw size={12} className={isSyncing ? "animate-spin" : ""} />
-              <span style={{ fontSize: "0.74rem" }}>{isSyncing ? "Sync..." : "Sync"}</span>
+              <RefreshCw size={13} className={isSyncing ? "animate-spin" : ""} />
+              <span className="px-hide-on-mobile" style={{ fontSize: "0.74rem" }}>{isSyncing ? "Sync..." : "Sync"}</span>
             </button>
 
             {/* Dark / Light Mode Toggle */}
             <button 
               className="px-btn px-btn--secondary px-btn--sm"
               onClick={() => setIsDark(!isDark)}
-              style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", padding: "0.25rem 0.55rem", fontSize: "0.74rem" }}
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.25rem", padding: "0.25rem 0.45rem", minHeight: "32px" }}
               title="Alternar Modo Claro / Modo Oscuro"
             >
-              {isDark ? <Sun size={12} color="var(--px-amber)" /> : <Moon size={12} color="var(--px-blue)" />}
-              <span>{isDark ? "Claro" : "Oscuro"}</span>
+              {isDark ? <Sun size={13} color="var(--px-amber)" /> : <Moon size={13} color="var(--px-blue)" />}
+              <span className="px-hide-on-mobile" style={{ fontSize: "0.74rem" }}>{isDark ? "Claro" : "Oscuro"}</span>
             </button>
 
             {/* User Profile Badge */}
@@ -315,22 +315,24 @@ export function MainLayout({ currentUser, onLogout, activeRoute, onNavigate, isD
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "0.45rem",
-                padding: "3px 8px",
+                gap: "0.3rem",
+                padding: "2px 6px",
                 borderRadius: "var(--px-radius-pill)",
                 background: "var(--px-surface-sunken)",
-                border: "1px solid var(--px-border)"
+                border: "1px solid var(--px-border)",
+                flexShrink: 0
               }}
+              title={`Perfil: ${currentUser.name || currentUser.role}`}
             >
               <div style={{
-                width: "22px", height: "22px", borderRadius: "50%",
+                width: "20px", height: "20px", borderRadius: "50%",
                 background: getRoleBadgeColor(currentUser.role),
                 color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: "0.7rem", fontWeight: "800"
+                fontSize: "0.68rem", fontWeight: "800"
               }}>
                 {currentUser.role.charAt(0)}
               </div>
-              <span style={{ fontSize: "0.74rem", fontWeight: "700", color: "var(--px-text-strong)" }}>
+              <span className="px-hide-on-mobile" style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--px-text-strong)" }}>
                 {currentUser.role}
               </span>
             </div>
@@ -340,7 +342,7 @@ export function MainLayout({ currentUser, onLogout, activeRoute, onNavigate, isD
               onClick={onLogout}
               className="px-btn px-btn--ghost px-btn--icon"
               title="Cerrar Sesión"
-              style={{ width: "32px", height: "32px", minHeight: "32px", color: "var(--px-red)" }}
+              style={{ width: "32px", height: "32px", minHeight: "32px", padding: 0, color: "var(--px-red)", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
             >
               <LogOut size={16} />
             </button>

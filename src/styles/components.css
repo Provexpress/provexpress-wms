@@ -674,16 +674,25 @@ body.px-theme--dark .px-product-card {
   }
   .px-main-container {
     margin-left: 0 !important;
+    padding-bottom: 78px !important;
+    overflow-x: hidden;
+  }
+  .px-footer {
+    display: none !important;
   }
   .px-mobile-bottom-nav {
     display: flex !important;
   }
   .px-app-layout {
-    padding-bottom: 68px;
+    padding-bottom: 0 !important;
+    overflow-x: hidden;
   }
 }
 
 @media (max-width: 768px) {
+  .px-hide-on-mobile {
+    display: none !important;
+  }
   .px-desktop-table {
     display: none !important;
   }
@@ -691,10 +700,17 @@ body.px-theme--dark .px-product-card {
     display: block !important;
   }
   .px-topbar {
-    padding: 0 0.85rem !important;
-    height: 54px !important;
+    padding: 0 0.5rem !important;
+    height: 52px !important;
+    overflow: hidden;
   }
   .px-topbar-search-desktop {
     display: none !important;
+  }
+  .px-btn {
+    min-height: 40px;
+  }
+  .px-section-page {
+    padding: 0.65rem 0.5rem !important;
   }
 }
