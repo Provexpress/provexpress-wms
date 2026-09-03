@@ -1,0 +1,569 @@
+@import url('./tokens.css');
+@import url('./components.css');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* =========================================================================
+   BASE RESET & CANVAS
+   ========================================================================= */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  background: var(--px-bg);
+  color: var(--px-text-strong);
+  font-family: var(--px-font-ui);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+body.px-theme--dark {
+  background: var(--px-dark-gradient-bg) !important;
+  color: var(--px-dark-text) !important;
+}
+
+#root {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* =========================================================================
+   APP CONTAINER
+   ========================================================================= */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: relative;
+  padding-bottom: 74px;
+  background: var(--px-gradient-bg);
+  transition: background 0.25s ease;
+}
+
+body.px-theme--dark .app-container {
+  background: var(--px-dark-gradient-bg);
+}
+
+@media (min-width: 769px) {
+  .app-container {
+    padding-bottom: 0;
+  }
+}
+
+.px-brand-strip {
+  height: 3px;
+  background: var(--px-gradient-brand);
+  width: 100%;
+}
+
+/* =========================================================================
+   INTERACTIVE KPI CARDS (HIGH CONTRAST & ACCENT STRIPS)
+   ========================================================================= */
+.px-interactive-card {
+  background: var(--px-surface);
+  border: 1px solid var(--px-border);
+  border-radius: var(--px-radius-md);
+  padding: 1.15rem;
+  box-shadow: var(--px-neu-flat);
+  transition: all var(--px-transition-fast);
+  position: relative;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+body.px-theme--dark .px-interactive-card {
+  background: var(--px-dark-gradient-surface);
+  border: 1px solid var(--px-dark-border);
+  box-shadow: var(--px-dark-neu-flat);
+}
+
+@media (min-width: 769px) {
+  .px-interactive-card:hover {
+    box-shadow: var(--px-neu-raised-hover);
+    transform: translateY(-2px);
+    border-color: #B8CADC;
+  }
+  body.px-theme--dark .px-interactive-card:hover {
+    box-shadow: var(--px-dark-neu-raised-hover);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+}
+
+.px-interactive-card:active {
+  transform: translateY(1px);
+  box-shadow: var(--px-neu-pressed);
+}
+
+.px-interactive-card.is-selected {
+  border-color: var(--px-blue) !important;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25), var(--px-neu-inset) !important;
+  background: var(--px-surface-sunken) !important;
+}
+
+body.px-theme--dark .px-interactive-card.is-selected {
+  border-color: #3B82F6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35), var(--px-dark-neu-inset) !important;
+  background: var(--px-dark-surface-sunken) !important;
+}
+
+/* =========================================================================
+   PROGRESS BARS (HIGH VISIBILITY INSET TRACK)
+   ========================================================================= */
+.px-progress-track {
+  background: var(--px-surface-sunken);
+  box-shadow: var(--px-neu-inset);
+  border: 1px solid var(--px-border);
+  border-radius: var(--px-radius-pill);
+  height: 9px;
+  overflow: hidden;
+  position: relative;
+}
+
+body.px-theme--dark .px-progress-track {
+  background: var(--px-dark-surface-sunken);
+  border-color: var(--px-dark-border);
+  box-shadow: var(--px-dark-neu-inset);
+}
+
+.px-progress-fill {
+  height: 100%;
+  border-radius: var(--px-radius-pill);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.px-progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: inherit;
+}
+
+/* =========================================================================
+   TIMELINE (VERTICAL ACTIVITY WITH HIGH CONTRAST)
+   ========================================================================= */
+.px-timeline {
+  position: relative;
+  padding-left: 1.6rem;
+}
+
+.px-timeline::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: #CBD5E1;
+  border-radius: 2px;
+}
+
+body.px-theme--dark .px-timeline::before {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.px-timeline-item {
+  position: relative;
+  padding-bottom: 0.95rem;
+}
+
+.px-timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -1.6rem;
+  top: 5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--px-surface);
+  box-shadow: var(--px-neu-raised-sm);
+  border: 2px solid var(--px-border-strong);
+}
+
+.px-timeline-item--entry::before {
+  background: var(--px-green);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+  border-color: #059669;
+}
+
+.px-timeline-item--exit::before {
+  background: var(--px-red);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+  border-color: #DC2626;
+}
+
+.px-timeline-item--count::before {
+  background: var(--px-amber);
+  box-shadow: 0 0 8px rgba(217, 119, 6, 0.5);
+  border-color: #B45309;
+}
+
+/* =========================================================================
+   RANK BADGES
+   ========================================================================= */
+.px-rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 800;
+  font-family: var(--px-font-data);
+  background: var(--px-surface);
+  box-shadow: var(--px-neu-raised-sm);
+  border: 1px solid var(--px-border);
+  color: var(--px-muted);
+  flex-shrink: 0;
+}
+
+.px-rank-badge--gold {
+  background: linear-gradient(135deg, #F59E0B, #FCD34D);
+  color: #78350F;
+  border-color: #D97706;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+}
+
+.px-rank-badge--silver {
+  background: linear-gradient(135deg, #94A3B8, #E2E8F0);
+  color: #1E293B;
+  border-color: #64748B;
+  box-shadow: 0 2px 6px rgba(148, 163, 184, 0.4);
+}
+
+.px-rank-badge--bronze {
+  background: linear-gradient(135deg, #B45309, #F59E0B);
+  color: #FFFFFF;
+  border-color: #92400E;
+  box-shadow: 0 2px 6px rgba(180, 83, 9, 0.4);
+}
+
+/* =========================================================================
+   LASER SCANNER ZONE (ZEBRA TC22)
+   ========================================================================= */
+.px-scanner-target-zone {
+  background: var(--px-surface-sunken);
+  box-shadow: var(--px-neu-inset-deep);
+  border: 2px dashed rgba(37, 99, 235, 0.5);
+  border-radius: var(--px-radius-xl);
+  padding: 1.5rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--px-transition-smooth);
+}
+
+body.px-theme--dark .px-scanner-target-zone {
+  background: var(--px-dark-surface-sunken);
+  box-shadow: var(--px-dark-neu-inset);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.px-scanner-target-zone:focus-within {
+  border-color: var(--px-blue);
+  border-style: solid;
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.3), var(--px-neu-inset);
+}
+
+@keyframes px-scan-laser {
+  0%   { top: 8%; opacity: 0.8; }
+  50%  { top: 88%; opacity: 1; }
+  100% { top: 8%; opacity: 0.8; }
+}
+
+.px-scanner-laser-line {
+  position: absolute;
+  left: 8%; right: 8%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--px-red), var(--px-red), transparent);
+  box-shadow: 0 0 8px var(--px-red), 0 0 16px rgba(239, 68, 68, 0.5);
+  border-radius: 2px;
+  animation: px-scan-laser 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  pointer-events: none;
+}
+
+/* =========================================================================
+   FOOTER
+   ========================================================================= */
+.px-footer {
+  background: var(--px-surface);
+  border-top: 1px solid var(--px-border);
+  box-shadow: 0 -2px 10px rgba(15, 23, 42, 0.04);
+  padding: 0.85rem 1.5rem;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--px-muted);
+}
+
+body.px-theme--dark .px-footer {
+  background: var(--px-dark-surface);
+  border-top: 1px solid var(--px-dark-border);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.4);
+  color: var(--px-dark-muted);
+}
+
+/* =========================================================================
+   RESPONSIVE TABLE / CARD SWITCHER
+   ========================================================================= */
+.px-desktop-table { display: block; }
+.px-mobile-cards  { display: none; }
+
+@media (max-width: 768px) {
+  .px-desktop-table { display: none; }
+  .px-mobile-cards  { display: block; }
+  .px-nav-tabs-desktop { display: none !important; }
+  .px-mobile-bottom-nav { display: flex !important; }
+  .px-theme { padding-bottom: 70px; }
+}
+
+/* =========================================================================
+   PRODUCT CARD (MOBILE)
+   ========================================================================= */
+.px-product-card {
+  background: var(--px-surface);
+  box-shadow: var(--px-neu-flat);
+  border: 1px solid var(--px-border);
+  border-radius: var(--px-radius-md);
+  padding: 1rem;
+  margin-bottom: 0.65rem;
+  transition: all var(--px-transition-smooth);
+  cursor: pointer;
+}
+
+body.px-theme--dark .px-product-card {
+  background: var(--px-dark-gradient-surface);
+  box-shadow: var(--px-dark-neu-flat);
+  border-color: var(--px-dark-border);
+}
+
+.px-product-card:hover {
+  box-shadow: var(--px-neu-raised);
+  border-color: #B8CADC;
+  transform: translateY(-1px);
+}
+
+/* =========================================================================
+   STAT MINI CARDS
+   ========================================================================= */
+.px-stat-card {
+  background: var(--px-surface);
+  box-shadow: var(--px-neu-flat);
+  border: 1px solid var(--px-border);
+  border-radius: var(--px-radius-md);
+  padding: 0.9rem;
+}
+
+body.px-theme--dark .px-stat-card {
+  background: var(--px-dark-gradient-surface);
+  box-shadow: var(--px-dark-neu-flat);
+  border-color: var(--px-dark-border);
+}
+
+/* =========================================================================
+   CATEGORY CHIPS
+   ========================================================================= */
+.px-category-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 6px 14px;
+  border-radius: var(--px-radius-pill);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--px-border);
+  background: var(--px-surface);
+  box-shadow: var(--px-neu-raised-sm);
+  color: var(--px-text);
+  transition: all var(--px-transition-fast);
+  user-select: none;
+  white-space: nowrap;
+}
+
+body.px-theme--dark .px-category-chip {
+  background: var(--px-dark-surface-raised);
+  box-shadow: var(--px-dark-neu-raised-sm);
+  color: var(--px-dark-text);
+  border-color: var(--px-dark-border);
+}
+
+.px-category-chip:hover {
+  box-shadow: var(--px-neu-raised);
+  border-color: #A4B8CE;
+  transform: translateY(-1px);
+}
+
+.px-category-chip.is-active {
+  background: #EFF6FF;
+  box-shadow: inset 1px 1px 3px rgba(37, 99, 235, 0.2);
+  color: var(--px-blue);
+  border-color: var(--px-blue);
+}
+
+body.px-theme--dark .px-category-chip.is-active {
+  background: rgba(37, 99, 235, 0.25);
+  box-shadow: var(--px-dark-neu-inset);
+  color: #93C5FD;
+  border-color: #3B82F6;
+}
+
+/* =========================================================================
+   FILTER PILLS
+   ========================================================================= */
+.px-filter-pills {
+  display: inline-flex;
+  background: var(--px-surface-sunken);
+  box-shadow: var(--px-neu-inset);
+  border: 1px solid var(--px-border);
+  border-radius: var(--px-radius-pill);
+  padding: 3px;
+  gap: 2px;
+  overflow-x: auto;
+}
+
+body.px-theme--dark .px-filter-pills {
+  background: var(--px-dark-surface-sunken);
+  border-color: var(--px-dark-border);
+  box-shadow: var(--px-dark-neu-inset);
+}
+
+.px-filter-pill {
+  padding: 5px 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--px-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--px-radius-pill);
+  cursor: pointer;
+  transition: all var(--px-transition-fast);
+  white-space: nowrap;
+  font-family: var(--px-font-ui);
+}
+
+.px-filter-pill.is-active {
+  background: var(--px-surface);
+  color: var(--px-blue);
+  border-color: var(--px-border);
+  box-shadow: var(--px-neu-raised-sm);
+}
+
+body.px-theme--dark .px-filter-pill.is-active {
+  background: var(--px-dark-surface-raised);
+  color: #FFFFFF;
+  border-color: var(--px-dark-border);
+  box-shadow: var(--px-dark-neu-raised-sm);
+}
+
+/* =========================================================================
+   PAGINATION
+   ========================================================================= */
+.px-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  flex-wrap: wrap;
+}
+
+.px-page-btn {
+  min-width: 36px;
+  height: 36px;
+  border-radius: var(--px-radius-sm);
+  border: 1px solid var(--px-border);
+  background: var(--px-surface);
+  box-shadow: var(--px-neu-raised-sm);
+  color: var(--px-text-strong);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--px-transition-fast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--px-font-ui);
+}
+
+.px-page-btn:hover:not(:disabled) {
+  box-shadow: var(--px-neu-raised);
+  border-color: #A4B8CE;
+  transform: translateY(-1px);
+}
+
+.px-page-btn:active:not(:disabled) {
+  box-shadow: var(--px-neu-pressed);
+  transform: translateY(1px);
+}
+
+.px-page-btn.is-active {
+  background: var(--px-gradient-brand);
+  color: #FFFFFF !important;
+  box-shadow: var(--px-neu-btn-primary);
+  border-color: transparent;
+}
+
+.px-page-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+body.px-theme--dark .px-page-btn {
+  background: var(--px-dark-surface-raised);
+  box-shadow: var(--px-dark-neu-raised-sm);
+  border-color: var(--px-dark-border);
+  color: var(--px-dark-text);
+}
+
+/* =========================================================================
+   CUSTOM SCROLLBARS
+   ========================================================================= */
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: var(--px-surface-sunken); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: #94A3B8; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #64748B; }
+
+body.px-theme--dark ::-webkit-scrollbar-track { background: var(--px-dark-surface-sunken); }
+body.px-theme--dark ::-webkit-scrollbar-thumb { background: #475569; }
+
+/* =========================================================================
+   UTILITIES
+   ========================================================================= */
+.px-section-page {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1rem 0.85rem;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.px-divider {
+  height: 1px;
+  background: var(--px-border);
+  margin: 0.75rem 0;
+}
+
+body.px-theme--dark .px-divider {
+  background: var(--px-dark-border);
+}

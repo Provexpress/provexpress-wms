@@ -1,0 +1,112 @@
+/* =========================================================================
+   PROVEXPRESS WMS - DESIGN SYSTEM TOKENS (SERIOUS ENTERPRISE RIGOR)
+   ========================================================================= */
+
+:root {
+  /* Brand Accent Colors */
+  --px-navy: #0F172A;
+  --px-blue: #2563EB;
+  --px-blue-hover: #1D4ED8;
+  --px-blue-light: #EFF6FF;
+  --px-blue-subtle: rgba(37, 99, 235, 0.08);
+  --px-purple: #7C3AED;
+  --px-purple-light: #F5F3FF;
+  --px-cyan: #0891B2;
+  --px-green: #10B981;
+  --px-green-dark: #047857;
+  --px-green-light: #ECFDF5;
+  --px-amber: #D97706;
+  --px-amber-light: #FFFBEB;
+  --px-red: #EF4444;
+  --px-red-light: #FEF2F2;
+
+  /* =========================================================================
+     MODO CLARO (LIGHT MODE): CLEAN CORPORATE SLATE & SHARP DEFINITION
+     ========================================================================= */
+  --px-bg: #F0F4F8;
+  --px-sidebar-bg: #FFFFFF;
+  --px-topbar-bg: rgba(255, 255, 255, 0.94);
+  --px-surface: #FFFFFF;
+  --px-surface-alt: #F8FAFC;
+  --px-surface-raised: #FFFFFF;
+  --px-surface-sunken: #F1F5F9;
+  --px-surface-zebra: #F8FAFC;
+
+  --px-text: #1E293B;
+  --px-text-strong: #0F172A;
+  --px-text-soft: #334155;
+  --px-muted: #64748B;
+  --px-muted-light: #94A3B8;
+
+  /* Crisp 1px Borders */
+  --px-border: #D8E2EC;
+  --px-border-light: #E2E8F0;
+  --px-border-strong: #94A3B8;
+  --px-border-focus: #2563EB;
+
+  /* Elevated Enterprise Shadows */
+  --px-neu-flat: 0 2px 8px -1px rgba(15, 23, 42, 0.06), 0 1px 3px -1px rgba(15, 23, 42, 0.04);
+  --px-neu-raised: 0 6px 18px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  --px-neu-raised-sm: 0 1px 4px 0 rgba(15, 23, 42, 0.06);
+  --px-neu-raised-hover: 0 10px 24px -3px rgba(15, 23, 42, 0.12), 0 4px 8px -2px rgba(15, 23, 42, 0.06);
+  --px-neu-inset: inset 1px 2px 4px rgba(148, 163, 184, 0.2);
+  --px-neu-inset-deep: inset 2px 2px 5px rgba(100, 116, 139, 0.25);
+  --px-neu-pressed: inset 0 2px 4px rgba(15, 23, 42, 0.12);
+  --px-neu-btn-primary: 0 2px 8px rgba(37, 99, 235, 0.35);
+
+  --px-gradient-surface: #FFFFFF;
+  --px-gradient-brand: linear-gradient(135deg, #1E3A8A 0%, #2563EB 60%, #3B82F6 100%);
+  --px-gradient-green: linear-gradient(135deg, #059669 0%, #10B981 100%);
+  --px-gradient-purple: linear-gradient(135deg, #6D28D9 0%, #8B5CF6 100%);
+  --px-gradient-bg: #F0F4F8;
+
+  /* =========================================================================
+     MODO OSCURO (DARK MODE): TITANIUM OBSIDIAN WITH LUMINOUS EDGES
+     ========================================================================= */
+  --px-dark-bg: #090E1A;
+  --px-dark-sidebar-bg: #0C1424;
+  --px-dark-topbar-bg: rgba(12, 20, 36, 0.94);
+  --px-dark-surface: #111B2E;
+  --px-dark-surface-alt: #0E1626;
+  --px-dark-surface-raised: #16243D;
+  --px-dark-surface-sunken: #070B14;
+  --px-dark-surface-zebra: #0D1525;
+
+  --px-dark-text: #E2E8F0;
+  --px-dark-text-strong: #FFFFFF;
+  --px-dark-text-soft: #CBD5E1;
+  --px-dark-muted: #94A3B8;
+  --px-dark-muted-light: #64748B;
+
+  --px-dark-border: rgba(255, 255, 255, 0.12);
+  --px-dark-border-light: rgba(255, 255, 255, 0.07);
+  --px-dark-border-strong: rgba(255, 255, 255, 0.22);
+  --px-dark-border-focus: #3B82F6;
+
+  --px-dark-neu-flat: 0 4px 16px -2px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --px-dark-neu-raised: 0 8px 24px -3px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --px-dark-neu-raised-sm: 0 2px 6px -1px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --px-dark-neu-raised-hover: 0 12px 30px -4px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --px-dark-neu-inset: inset 2px 2px 5px rgba(0, 0, 0, 0.7);
+  --px-dark-neu-inset-deep: inset 3px 3px 7px rgba(0, 0, 0, 0.85);
+
+  --px-dark-gradient-surface: #111B2E;
+  --px-dark-gradient-bg: #090E1A;
+
+  /* Typography & Geometry */
+  --px-font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --px-font-data: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+
+  --px-radius-xs: 5px;
+  --px-radius-sm: 8px;
+  --px-radius-md: 10px;
+  --px-radius-lg: 14px;
+  --px-radius-xl: 18px;
+  --px-radius-pill: 9999px;
+
+  --px-sidebar-width: 240px;
+  --px-topbar-height: 60px;
+
+  --px-transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --px-transition-smooth: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
