@@ -7,8 +7,11 @@ import {
   Maximize2, LayoutGrid, ListFilter
 } from "lucide-react";
 import { BarcodeGenerator } from "./BarcodeGenerator";
+import { authService } from "../services/auth";
 
 export function WarehouseMap({ products, onSelectProductForZebra, onGoToZebra }) {
+  const currentUser = authService.getCurrentUser();
+  const isOperator = currentUser?.role === "OPERADOR";
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRackFilter, setSelectedRackFilter] = useState("ALL"); // ALL, A, B, C, PISO
   const [activeBinId, setActiveBinId] = useState("COTA-B2"); // Default inspected bin
@@ -183,73 +186,77 @@ export function WarehouseMap({ products, onSelectProductForZebra, onGoToZebra })
             </p>
           </div>
 
-          {/* Quick Action Buttons */}
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <div style={{ display: "flex", background: "var(--px-surface-sunken)", padding: "3px", borderRadius: "8px", border: "1px solid var(--px-border)" }}>
+          {/* Quick Action Buttons (100% Responsive Segmented Control) */}
+          <div style={{ width: "100%", maxWidth: "460px", marginTop: "0.4rem" }}>
+            <div style={{ 
+              display: "grid", 
+              gridTemplateColumns: "1fr 1fr", 
+              background: "var(--px-surface-sunken)", 
+              padding: "4px", 
+              borderRadius: "10px", 
+              border: "1px solid var(--px-border)",
+              width: "100%",
+              boxSizing: "border-box"
+            }}>
               <button 
                 className={`px-btn px-btn--sm ${viewMode === "RACKS" ? "px-btn--primary" : "px-btn--ghost"}`}
                 onClick={() => setViewMode("RACKS")}
-                style={{ padding: "4px 10px", fontSize: "0.75rem", height: "30px" }}
+                style={{ height: "38px", fontSize: "0.82rem", fontWeight: "700", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.35rem", borderRadius: "8px" }}
               >
-                <LayoutGrid size={13} /> Vista Estantería
+                <LayoutGrid size={15} /> Vista Estantería
               </button>
               <button 
                 className={`px-btn px-btn--sm ${viewMode === "TABLE" ? "px-btn--primary" : "px-btn--ghost"}`}
                 onClick={() => setViewMode("TABLE")}
-                style={{ padding: "4px 10px", fontSize: "0.75rem", height: "30px" }}
+                style={{ height: "38px", fontSize: "0.82rem", fontWeight: "700", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.35rem", borderRadius: "8px" }}
               >
-                <ListFilter size={13} /> Vista Lista
+                <ListFilter size={15} /> Vista Lista
               </button>
             </div>
-
-            <button 
-              className="px-btn px-btn--primary px-btn--sm"
-              onClick={onGoToZebra}
-              style={{ height: "36px" }}
-            >
-              <ArrowDownLeft size={15} /> + Entrada (Zebra)
-            </button>
           </div>
         </div>
       </div>
 
-      {/* 2. Top Summary KPI Cards (Clean, High-Readability Numbers) */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: "0.75rem", marginBottom: "1rem" }}>
+      {/* 2. Top Summary KPI Cards (Responsive & Clean) */}
+      <div style={{ display: "grid", gridTemplateColumns: isOperator ? "repeat(auto-fit, minmax(min(100%, 160px), 1fr))" : "repeat(auto-fit, minmax(min(100%, 200px), 1fr))", gap: "0.6rem", marginBottom: "0.85rem" }}>
         
-        <div className="px-card" style={{ padding: "0.85rem 1rem", borderLeft: "4px solid var(--px-blue)" }}>
-          <span style={{ fontSize: "0.7rem", fontWeight: "800", color: "var(--px-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>Total Físico Contado</span>
-          <div style={{ fontSize: "1.4rem", fontWeight: "800", color: "var(--px-text-strong)", marginTop: "2px", fontFamily: "var(--px-font-ui)" }}>
-            {new Intl.NumberFormat("es-CO").format(globalTotalUnits)} <span style={{ fontSize: "0.78rem", color: "var(--px-muted)", fontWeight: "600" }}>unidades</span>
+        <div className="px-card" style={{ padding: "0.75rem 0.85rem", borderLeft: "4px solid var(--px-blue)" }}>
+          <span style={{ fontSize: "0.68rem", fontWeight: "800", color: "var(--px-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>Total Físico Contado</span>
+          <div style={{ fontSize: "1.35rem", fontWeight: "800", color: "var(--px-text-strong)", marginTop: "2px", fontFamily: "var(--px-font-ui)" }}>
+            {new Intl.NumberFormat("es-CO").format(globalTotalUnits)} <span style={{ fontSize: "0.75rem", color: "var(--px-muted)", fontWeight: "600" }}>unidades</span>
           </div>
           <div style={{ fontSize: "0.7rem", color: "var(--px-green)", fontWeight: "700", marginTop: "2px" }}>
-            125 referencias clasificadas
+            124 referencias clasificadas
           </div>
         </div>
 
-        <div className="px-card" style={{ padding: "0.85rem 1rem", borderLeft: "4px solid var(--px-green)" }}>
-          <span style={{ fontSize: "0.7rem", fontWeight: "800", color: "var(--px-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>Valuación de Almacén</span>
-          <div style={{ fontSize: "1.4rem", fontWeight: "800", color: "var(--px-text-strong)", marginTop: "2px", fontFamily: "var(--px-font-ui)" }}>
-            {formatCOP(globalTotalVal)}
-          </div>
-          <div style={{ fontSize: "0.7rem", color: "var(--px-muted)", marginTop: "2px" }}>
-            Costo FIFO: $120.000 COP / unid
-          </div>
-        </div>
-
-        <div className="px-card" style={{ padding: "0.85rem 1rem", borderLeft: "4px solid var(--px-purple)" }}>
-          <span style={{ fontSize: "0.7rem", fontWeight: "800", color: "var(--px-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>Distribución de Racks</span>
-          <div style={{ fontSize: "1.4rem", fontWeight: "800", color: "var(--px-text-strong)", marginTop: "2px", fontFamily: "var(--px-font-ui)" }}>
-            11 Ubicaciones <span style={{ fontSize: "0.78rem", color: "var(--px-muted)", fontWeight: "600" }}>físicas</span>
+        <div className="px-card" style={{ padding: "0.75rem 0.85rem", borderLeft: "4px solid var(--px-purple)" }}>
+          <span style={{ fontSize: "0.68rem", fontWeight: "800", color: "var(--px-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>Estantes en Bodega</span>
+          <div style={{ fontSize: "1.35rem", fontWeight: "800", color: "var(--px-text-strong)", marginTop: "2px", fontFamily: "var(--px-font-ui)" }}>
+            11 Estantes <span style={{ fontSize: "0.75rem", color: "var(--px-muted)", fontWeight: "600" }}>físicos</span>
           </div>
           <div style={{ fontSize: "0.7rem", color: "var(--px-blue)", fontWeight: "700", marginTop: "2px" }}>
-            Estante A (4) • Estante B (4) • Estante C (2) • Piso
+            Racks A, B, C y Piso 3
           </div>
         </div>
 
-        <div className="px-card" style={{ padding: "0.85rem 1rem", borderLeft: "4px solid #D97706" }}>
-          <span style={{ fontSize: "0.7rem", fontWeight: "800", color: "var(--px-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>Espacio Seleccionado</span>
-          <div style={{ fontSize: "1.4rem", fontWeight: "800", color: "#D97706", marginTop: "2px", fontFamily: "var(--px-font-ui)" }}>
-            {activeBinId} <span style={{ fontSize: "0.78rem", color: "var(--px-muted)", fontWeight: "600" }}>({currentActiveBin.totalUnits || 0} u)</span>
+        {/* Valuación solo para Supervisor y Gerencia */}
+        {!isOperator && (
+          <div className="px-card" style={{ padding: "0.75rem 0.85rem", borderLeft: "4px solid var(--px-green)" }}>
+            <span style={{ fontSize: "0.68rem", fontWeight: "800", color: "var(--px-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>Valuación de Almacén</span>
+            <div style={{ fontSize: "1.35rem", fontWeight: "800", color: "var(--px-text-strong)", marginTop: "2px", fontFamily: "var(--px-font-ui)" }}>
+              {formatCOP(globalTotalVal)}
+            </div>
+            <div style={{ fontSize: "0.7rem", color: "var(--px-muted)", marginTop: "2px" }}>
+              Costo FIFO: $120.000 COP / unid
+            </div>
+          </div>
+        )}
+
+        <div className="px-card" style={{ padding: "0.75rem 0.85rem", borderLeft: "4px solid #D97706" }}>
+          <span style={{ fontSize: "0.68rem", fontWeight: "800", color: "var(--px-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>Estante Seleccionado</span>
+          <div style={{ fontSize: "1.35rem", fontWeight: "800", color: "#D97706", marginTop: "2px", fontFamily: "var(--px-font-ui)" }}>
+            {activeBinId} <span style={{ fontSize: "0.75rem", color: "var(--px-muted)", fontWeight: "600" }}>({currentActiveBin.totalUnits || 0} u)</span>
           </div>
           <div style={{ fontSize: "0.7rem", color: "var(--px-muted)", marginTop: "2px" }}>
             {currentActiveBin.rackName} • {currentActiveBin.tierName}
