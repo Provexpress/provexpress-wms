@@ -3,7 +3,9 @@ import cors from "cors";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { createRequire } from "module";
 
+const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -12,23 +14,17 @@ const app = express();
 app.use(cors({ origin: "*" }));
 app.use(express.json({ limit: "10mb" }));
 
-// Resolve data files safely in both local and Vercel environments
-function loadJsonFile(relativePath) {
-  const possiblePaths = [
-    path.join(process.cwd(), relativePath),
-    path.join(__dirname, "..", relativePath),
-    path.join(__dirname, relativePath)
-  ];
-  for (const p of possiblePaths) {
-    if (fs.existsSync(p)) {
-      try {
-        return JSON.parse(fs.readFileSync(p, "utf8"));
-      } catch (e) {
-        console.error(`Error parsing JSON at ${p}:`, e);
-      }
+function getBaseProducts() {
+  try {
+    return require("./products.json");
+  } catch (e) {
+    try {
+      return require("../src/data/products.json");
+    } catch (e2) {
+      console.error("Error loading products.json:", e2);
+      return [];
     }
   }
-  return null;
 }
 
 // =========================================================================
@@ -138,7 +134,7 @@ app.post("/api/auth/login", (req, res) => {
 // 3. PRODUCTS (124 REFERENCIAS CON EXISTENCIAS EN VIVO DESDE BUSINESS CENTRAL)
 app.get("/api/products", async (req, res) => {
   try {
-    const defaultProds = loadJsonFile("src/data/products.json") || [];
+    const defaultProds = getBaseProducts();
     const journalLines = await fetchBcJournalLines();
 
     // Map movements from Business Central Cloud
@@ -171,7 +167,7 @@ app.get("/api/products", async (req, res) => {
     });
   } catch (err) {
     console.error("Error calculating products:", err);
-    const fallback = loadJsonFile("src/data/products.json") || [];
+    const fallback = getBaseProducts();
     res.json({ total: fallback.length, value: fallback });
   }
 });
@@ -219,7 +215,7 @@ app.get("/api/bc/ping", async (req, res) => {
 });
 
 app.get("/api/bc/items", (req, res) => {
-  const products = loadJsonFile("src/data/products.json") || [];
+  const products = getBaseProducts();
   res.json({
     value: products,
     totalCount: products.length
