@@ -291,20 +291,21 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
           </button>
         </div>
 
-        {/* 3 Touch Mode Buttons for Zebra */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.35rem" }}>
+        {/* 3 Touch Mode Buttons for Zebra TC22 */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.3rem" }}>
           <button 
             type="button"
             className={`px-btn ${subTab === "picking" ? "px-btn--primary" : "px-btn--ghost"}`}
             onClick={() => { setSubTab("picking"); setShowNewOrderForm(false); }}
             style={{ 
-              background: subTab === "picking" ? "var(--px-blue)" : "rgba(244, 247, 255, 0.8)", 
+              background: subTab === "picking" ? "var(--px-blue)" : "var(--px-surface-sunken)", 
               color: subTab === "picking" ? "#fff" : "var(--px-text)",
-              minHeight: "44px", fontWeight: "800", fontSize: "0.82rem", borderRadius: "10px",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: "0.25rem"
+              minHeight: "42px", fontWeight: "800", fontSize: "0.76rem", borderRadius: "10px",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: "0.2rem",
+              padding: "0.2rem 0.3rem"
             }}
           >
-            <Package size={15} /> 1. Picking ({activePickingOrders.length})
+            <Package size={14} /> Picking ({activePickingOrders.length})
           </button>
 
           <button 
@@ -312,16 +313,17 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
             className={`px-btn ${subTab === "review" ? "px-btn--primary" : "px-btn--ghost"}`}
             onClick={() => { setSubTab("review"); setShowNewOrderForm(false); }}
             style={{ 
-              background: subTab === "review" ? "var(--px-purple)" : "rgba(244, 247, 255, 0.8)", 
+              background: subTab === "review" ? "var(--px-purple)" : "var(--px-surface-sunken)", 
               color: subTab === "review" ? "#fff" : "var(--px-text)",
-              minHeight: "44px", fontWeight: "800", fontSize: "0.82rem", borderRadius: "10px",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: "0.25rem",
+              minHeight: "42px", fontWeight: "800", fontSize: "0.76rem", borderRadius: "10px",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: "0.2rem",
+              padding: "0.2rem 0.3rem",
               position: "relative"
             }}
           >
-            <ClipboardCheck size={15} /> 2. Revisión ({pendingReviewOrders.length})
+            <ClipboardCheck size={14} /> Revisión ({pendingReviewOrders.length})
             {pendingReviewOrders.length > 0 && (
-              <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--px-amber)", position: "absolute", top: "6px", right: "6px" }}></span>
+              <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--px-amber)", position: "absolute", top: "4px", right: "4px" }}></span>
             )}
           </button>
 
@@ -330,13 +332,14 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
             className={`px-btn ${subTab === "history" ? "px-btn--primary" : "px-btn--ghost"}`}
             onClick={() => { setSubTab("history"); setShowNewOrderForm(false); }}
             style={{ 
-              background: subTab === "history" ? "var(--px-green)" : "rgba(244, 247, 255, 0.8)", 
+              background: subTab === "history" ? "var(--px-green)" : "var(--px-surface-sunken)", 
               color: subTab === "history" ? "#fff" : "var(--px-text)",
-              minHeight: "44px", fontWeight: "800", fontSize: "0.82rem", borderRadius: "10px",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: "0.25rem"
+              minHeight: "42px", fontWeight: "800", fontSize: "0.76rem", borderRadius: "10px",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: "0.2rem",
+              padding: "0.2rem 0.3rem"
             }}
           >
-            <Truck size={15} /> 3. Salidas ({historyOrders.length})
+            <Truck size={14} /> Salidas ({historyOrders.length})
           </button>
         </div>
 
@@ -463,35 +466,39 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
 
           {/* Selected Products in Order Summary */}
           {selectedProductsForNewOrder.length > 0 && (
-            <div style={{ marginBottom: "1rem", padding: "0.75rem", background: "rgba(255, 255, 255, 0.9)", borderRadius: "12px", border: "1px solid rgba(21, 101, 192, 0.3)" }}>
-              <div style={{ fontSize: "0.75rem", fontWeight: "800", color: "var(--px-blue)", marginBottom: "0.5rem" }}>
-                📋 Resumen de Unidades a Alistar:
+            <div style={{ marginBottom: "1rem", padding: "0.75rem", background: "var(--px-surface)", borderRadius: "12px", border: "1px solid var(--px-border)", boxShadow: "var(--px-neu-flat)" }}>
+              <div style={{ fontSize: "0.78rem", fontWeight: "800", color: "var(--px-blue)", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <ClipboardCheck size={15} /> Resumen de Unidades a Alistar ({selectedProductsForNewOrder.reduce((s, p) => s + p.qty, 0)} u):
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem" }}>
                 {selectedProductsForNewOrder.map(item => (
-                  <div key={item.sku} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.4rem 0.55rem", background: "rgba(244, 247, 255, 0.8)", borderRadius: "8px" }}>
+                  <div key={item.sku} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.5rem 0.65rem", background: "var(--px-surface-sunken)", borderRadius: "10px", border: "1px solid var(--px-border)", gap: "0.5rem" }}>
                     <div style={{ minWidth: 0, flex: "1 1 auto" }}>
-                      <span className="px-mono" style={{ fontWeight: "800", fontSize: "0.82rem" }}>{item.sku}</span>
-                      <span style={{ fontSize: "0.72rem", color: "var(--px-muted)", marginLeft: "6px" }}>{item.name}</span>
+                      <div className="px-mono" style={{ fontWeight: "800", fontSize: "0.85rem", color: "var(--px-text-strong)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {item.sku}
+                      </div>
+                      <div style={{ fontSize: "0.72rem", color: "var(--px-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: "2px" }}>
+                        {item.name}
+                      </div>
                     </div>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", flexShrink: 0 }}>
                       <button 
                         type="button" 
                         className="px-btn px-btn--sm px-btn--secondary" 
                         onClick={() => handleUpdateBuilderQty(item.sku, -1)}
-                        style={{ width: "32px", height: "32px", padding: 0, fontWeight: "800", borderRadius: "8px" }}
+                        style={{ width: "34px", height: "34px", minHeight: "34px", padding: 0, fontWeight: "800", borderRadius: "8px" }}
                       >
                         <Minus size={13} />
                       </button>
-                      <span className="px-mono" style={{ fontWeight: "800", fontSize: "0.95rem", minWidth: "22px", textAlign: "center" }}>
+                      <span className="px-mono" style={{ fontWeight: "800", fontSize: "0.95rem", minWidth: "24px", textAlign: "center", color: "var(--px-text-strong)" }}>
                         {item.qty}
                       </span>
                       <button 
                         type="button" 
                         className="px-btn px-btn--sm px-btn--secondary" 
                         onClick={() => handleUpdateBuilderQty(item.sku, 1)}
-                        style={{ width: "32px", height: "32px", padding: 0, fontWeight: "800", borderRadius: "8px" }}
+                        style={{ width: "34px", height: "34px", minHeight: "34px", padding: 0, fontWeight: "800", borderRadius: "8px" }}
                       >
                         <Plus size={13} />
                       </button>
@@ -499,9 +506,10 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
                         type="button" 
                         className="px-btn px-btn--sm px-btn--ghost" 
                         onClick={() => handleRemoveFromBuilder(item.sku)}
-                        style={{ color: "var(--px-red)", padding: "4px" }}
+                        style={{ color: "var(--px-red)", padding: "4px", width: "28px", height: "28px", minHeight: "28px", display: "flex", alignItems: "center", justifyContent: "center" }}
+                        title="Eliminar del pedido"
                       >
-                        <X size={14} />
+                        <X size={15} />
                       </button>
                     </div>
                   </div>
@@ -510,23 +518,36 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
             </div>
           )}
 
-          {/* Action Buttons */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "0.5rem" }}>
-            <button 
-              type="button" 
-              className="px-btn px-btn--secondary" 
-              onClick={() => setShowNewOrderForm(false)}
-              style={{ minHeight: "48px", borderRadius: "10px", fontSize: "0.85rem" }}
-            >
-              Cancelar
-            </button>
+          {/* Action Buttons: Stacked so the text NEVER truncates on Zebra TC22 */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginTop: "0.85rem" }}>
             <button 
               type="button" 
               className="px-btn px-btn--primary" 
               onClick={handleSaveNewOrder}
-              style={{ minHeight: "48px", background: "var(--px-gradient-brand)", borderRadius: "10px", fontSize: "0.92rem", fontWeight: "800" }}
+              style={{ 
+                width: "100%", 
+                minHeight: "48px", 
+                background: "var(--px-gradient-brand)", 
+                borderRadius: "12px", 
+                fontSize: "0.95rem", 
+                fontWeight: "800",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.5rem",
+                boxShadow: "var(--px-neu-btn-primary)"
+              }}
             >
-              🚀 Iniciar Alistamiento ({selectedProductsForNewOrder.reduce((s, p) => s + p.qty, 0)} Unid.)
+              🚀 Iniciar Alistamiento ({selectedProductsForNewOrder.reduce((s, p) => s + p.qty, 0)} {selectedProductsForNewOrder.reduce((s, p) => s + p.qty, 0) === 1 ? "Unidad" : "Unidades"})
+            </button>
+
+            <button 
+              type="button" 
+              className="px-btn px-btn--ghost" 
+              onClick={() => setShowNewOrderForm(false)}
+              style={{ width: "100%", minHeight: "36px", borderRadius: "10px", fontSize: "0.82rem", color: "var(--px-muted)" }}
+            >
+              Cancelar y Volver
             </button>
           </div>
 
@@ -881,28 +902,30 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
                 />
               </div>
 
-              {/* Action Buttons: Return or Approve */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "0.5rem" }}>
-                <button 
-                  type="button"
-                  className="px-btn px-btn--secondary"
-                  onClick={() => setRejectionModalOrder(currentReviewOrder)}
-                  style={{ minHeight: "48px", borderRadius: "10px", fontSize: "0.82rem", color: "var(--px-red)", fontWeight: "700", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.25rem" }}
-                >
-                  <RotateCcw size={15} /> Devolver
-                </button>
-
+              {/* Action Buttons: Return or Approve (Stacked on Zebra TC22) */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem", marginTop: "0.85rem" }}>
                 <button 
                   type="button"
                   className="px-btn px-btn--primary"
                   onClick={() => handleApproveAndDispatch(currentReviewOrder.id)}
                   style={{ 
+                    width: "100%",
                     minHeight: "48px", fontSize: "0.95rem", fontWeight: "800", 
-                    background: "var(--px-green)", borderRadius: "10px",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem" 
+                    background: "var(--px-green)", borderRadius: "12px",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem",
+                    boxShadow: "var(--px-neu-btn-primary)"
                   }}
                 >
-                  <Check size={18} /> 🚀 Aprobar Salida Oficial (BC)
+                  <Check size={18} /> Aprobar Salida Oficial en BC
+                </button>
+
+                <button 
+                  type="button"
+                  className="px-btn px-btn--ghost"
+                  onClick={() => setRejectionModalOrder(currentReviewOrder)}
+                  style={{ width: "100%", minHeight: "36px", borderRadius: "10px", fontSize: "0.82rem", color: "var(--px-red)", fontWeight: "700", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.25rem" }}
+                >
+                  <RotateCcw size={14} /> Devolver Pedido para Ajuste
                 </button>
               </div>
 
