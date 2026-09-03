@@ -2,10 +2,12 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import { 
   Package, ArrowUpRight, CheckCircle2, ShieldCheck, AlertCircle, Plus, 
   Search, X, QrCode, ClipboardCheck, ArrowRight, RotateCcw, Clock, 
-  Truck, Check, AlertTriangle, UserCheck, FileText, Send, Minus, Sparkles
+  Truck, Check, AlertTriangle, UserCheck, FileText, Send, Minus, Sparkles,
+  Barcode
 } from "lucide-react";
 import { storageService } from "../services/storage";
 import { audioService } from "../services/audio";
+import { validateLocalBarcode } from "../services/barcode-validation";
 
 export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
   const [subTab, setSubTab] = useState("picking"); // 'picking' | 'review' | 'history'
@@ -19,6 +21,15 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
   const [newOrderNotes, setNewOrderNotes] = useState("");
   const [productSearch, setProductSearch] = useState("");
   const [selectedProductsForNewOrder, setSelectedProductsForNewOrder] = useState([]);
+
+  // Laser Scanner State for Zebra TC22 (Despacho: Creación & Picking)
+  const [builderLaserInput, setBuilderLaserInput] = useState("");
+  const [builderLaserFlash, setBuilderLaserFlash] = useState(false);
+  const [pickingLaserInput, setPickingLaserInput] = useState("");
+  const [pickingLaserFlash, setPickingLaserFlash] = useState(false);
+
+  const builderLaserRef = useRef(null);
+  const pickingLaserRef = useRef(null);
 
   // Active Picking State
   const [scanSerialInput, setScanSerialInput] = useState("");
@@ -198,6 +209,80 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
     setRejectionReason("");
     setSubTab("picking");
   };
+
+  // 4.5. ZEBRA TC22 BARCODE HANDLERS (HANDSFREE TRIGGER PULLS)
+  const handleBuilderBarcodeScan = (rawCode) => {
+    if (!rawCode || !rawCode.trim()) return;
+    const result = validateLocalBarcode(products, rawCode.trim());
+    if (result && result.found && result.product) {
+      const prod = result.product;
+      handleAddProductToBuilder(prod);
+      setBuilderLaserFlash(true);
+      setTimeout(() => setBuilderLaserFlash(false), 250);
+      setNotification(`✓ ${prod.sku} sumado al pedido (+1)`);
+      setTimeout(() => setNotification(""), 3500);
+      setBuilderLaserInput("");
+      setProductSearch("");
+      if (builderLaserRef.current) builderLaserRef.current.focus();
+    } else {
+      audioService.playError();
+      setNotification(`⚠️ Código "${rawCode}" no encontrado en catálogo.`);
+      setTimeout(() => setNotification(""), 4000);
+      setBuilderLaserInput("");
+    }
+  };
+
+  const handlePickingBarcodeScan = (rawCode) => {
+    if (!currentPickingOrder || !rawCode || !rawCode.trim()) return;
+    const result = validateLocalBarcode(products, rawCode.trim());
+    if (!result || !result.found || !result.product) {
+      audioService.playError();
+      setNotification(`⚠️ Código "${rawCode}" no reconocido en el catálogo.`);
+      setTimeout(() => setNotification(""), 4000);
+      setPickingLaserInput("");
+      return;
+    }
+
+    const scannedProd = result.product;
+    const itemIndex = currentPickingOrder.items.findIndex(
+      it => it.sku.toUpperCase() === scannedProd.sku.toUpperCase()
+    );
+
+    if (itemIndex < 0) {
+      audioService.playError();
+      setNotification(`❌ ERROR DE PICKING: ${scannedProd.sku} NO pertenece a este pedido #${currentPickingOrder.id}!`);
+      setTimeout(() => setNotification(""), 5000);
+      setPickingLaserInput("");
+      return;
+    }
+
+    const item = currentPickingOrder.items[itemIndex];
+    if ((item.pickedQty || 0) >= item.requestedQty) {
+      audioService.playError();
+      setNotification(`⚠️ ${scannedProd.sku} ya completó la cantidad requerida (${item.requestedQty} u).`);
+      setTimeout(() => setNotification(""), 4000);
+      setPickingLaserInput("");
+      return;
+    }
+
+    handleIncrementNonSerialized(scannedProd.sku);
+    setPickingLaserFlash(true);
+    setTimeout(() => setPickingLaserFlash(false), 250);
+    const newQty = (item.pickedQty || 0) + 1;
+    setNotification(`✓ ${scannedProd.sku} verificado (${newQty}/${item.requestedQty} u)`);
+    setTimeout(() => setNotification(""), 3500);
+    setPickingLaserInput("");
+    if (pickingLaserRef.current) pickingLaserRef.current.focus();
+  };
+
+  // Auto-focus Zebra Laser receiver
+  useEffect(() => {
+    if (showNewOrderForm && builderLaserRef.current) {
+      builderLaserRef.current.focus();
+    } else if (subTab === "picking" && currentPickingOrder && pickingLaserRef.current) {
+      pickingLaserRef.current.focus();
+    }
+  }, [showNewOrderForm, subTab, currentPickingOrder]);
 
   // 5. CREATE NEW ORDER HANDLERS
   const handleAddProductToBuilder = (prod) => {
@@ -392,11 +477,83 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
             />
           </div>
 
-          {/* Add Products to Order (Live Touch Grid & Search) */}
+          {/* 1. ZEBRA TC22 HARDWARE LASER RECEIVER BOX */}
+          <div style={{ 
+            padding: "0.75rem 0.65rem", 
+            background: builderLaserFlash ? "rgba(22, 163, 74, 0.25)" : "rgba(22, 163, 74, 0.06)", 
+            border: "2px solid var(--px-green)", 
+            borderRadius: "14px", 
+            marginBottom: "0.75rem",
+            transition: "background 0.2s ease"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem", color: "var(--px-green)", fontWeight: "800", fontSize: "0.88rem", marginBottom: "0.4rem" }}>
+              <span className="px-live-dot" style={{ width: "8px", height: "8px" }}></span>
+              <span>Láser Zebra Listo: Escanear Tóner a Despachar</span>
+            </div>
+
+            <form onSubmit={(e) => { e.preventDefault(); handleBuilderBarcodeScan(builderLaserInput); }} style={{ display: "flex", gap: "0.4rem", alignItems: "stretch", width: "100%" }}>
+              <div style={{ position: "relative", flex: "1 1 auto", minWidth: 0 }}>
+                <input 
+                  ref={builderLaserRef}
+                  type="text" 
+                  className="px-input" 
+                  placeholder="Apunta el láser a la caja del tóner..."
+                  value={builderLaserInput}
+                  onChange={(e) => setBuilderLaserInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === "Tab") {
+                      e.preventDefault();
+                      handleBuilderBarcodeScan(e.target.value);
+                    }
+                  }}
+                  style={{ 
+                    height: "46px", 
+                    fontSize: "0.95rem", 
+                    fontWeight: "800", 
+                    borderRadius: "12px", 
+                    paddingLeft: "2.2rem",
+                    paddingRight: "0.6rem",
+                    border: "1.5px solid var(--px-green)",
+                    background: "var(--px-surface-sunken)",
+                    boxSizing: "border-box",
+                    width: "100%"
+                  }}
+                />
+                <span style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
+                  <Barcode size={16} color="var(--px-green)" />
+                </span>
+              </div>
+
+              <button 
+                type="submit" 
+                className="px-btn px-btn--primary"
+                style={{ 
+                  background: "var(--px-gradient-green)", 
+                  width: "46px",
+                  minWidth: "46px", 
+                  height: "46px",
+                  borderRadius: "12px", 
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: 0,
+                  flexShrink: 0
+                }}
+                title="Sumar tóner escaneado (+1)"
+              >
+                <Plus size={20} />
+              </button>
+            </form>
+            <div style={{ fontSize: "0.72rem", color: "var(--px-muted)", marginTop: "0.35rem", textAlign: "center" }}>
+              ⚡ Dispara a la caja del tóner y se sumará automáticamente (+1)
+            </div>
+          </div>
+
+          {/* 2. Manual Search Fallback & Suggestions */}
           <div style={{ marginBottom: "1rem" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
               <label className="px-label" style={{ fontSize: "0.75rem", fontWeight: "700", margin: 0 }}>
-                Toca o Escanea los Productos a Incluir:
+                O busca manualmente en el catálogo:
               </label>
               <span className="px-badge px-badge--success" style={{ fontSize: "0.72rem" }}>
                 {selectedProductsForNewOrder.length} seleccionados
@@ -409,7 +566,7 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
                 ref={prodSearchInputRef}
                 type="text" 
                 className="px-input" 
-                placeholder="Buscar SKU o disparar láser Zebra..."
+                placeholder="Filtrar por nombre o SKU..."
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
                 style={{ paddingLeft: "2.3rem", height: "42px", fontSize: "0.88rem", borderRadius: "10px" }}
@@ -615,6 +772,78 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
                   <strong>⚠️ Observación del Revisor:</strong> {currentPickingOrder.rejectionReason}
                 </div>
               )}
+
+              {/* ZEBRA TC22 HARDWARE LASER PICKING VERIFIER BOX */}
+              <div style={{ 
+                padding: "0.75rem 0.65rem", 
+                background: pickingLaserFlash ? "rgba(22, 163, 74, 0.25)" : "rgba(37, 99, 235, 0.06)", 
+                border: `2px solid ${pickingLaserFlash ? "var(--px-green)" : "var(--px-blue)"}`, 
+                borderRadius: "14px", 
+                marginBottom: "0.85rem",
+                transition: "background 0.2s ease"
+              }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem", color: "var(--px-blue)", fontWeight: "800", fontSize: "0.88rem", marginBottom: "0.4rem" }}>
+                  <span className="px-live-dot" style={{ width: "8px", height: "8px" }}></span>
+                  <span>Láser Zebra: Escanear Tóner para Confirmar Picking</span>
+                </div>
+
+                <form onSubmit={(e) => { e.preventDefault(); handlePickingBarcodeScan(pickingLaserInput); }} style={{ display: "flex", gap: "0.4rem", alignItems: "stretch", width: "100%" }}>
+                  <div style={{ position: "relative", flex: "1 1 auto", minWidth: 0 }}>
+                    <input 
+                      ref={pickingLaserRef}
+                      type="text" 
+                      className="px-input" 
+                      placeholder="Disparar láser al tóner retirado..."
+                      value={pickingLaserInput}
+                      onChange={(e) => setPickingLaserInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === "Tab") {
+                          e.preventDefault();
+                          handlePickingBarcodeScan(e.target.value);
+                        }
+                      }}
+                      style={{ 
+                        height: "46px", 
+                        fontSize: "0.95rem", 
+                        fontWeight: "800", 
+                        borderRadius: "12px", 
+                        paddingLeft: "2.2rem",
+                        paddingRight: "0.6rem",
+                        border: "1.5px solid var(--px-blue)",
+                        background: "var(--px-surface-sunken)",
+                        boxSizing: "border-box",
+                        width: "100%"
+                      }}
+                    />
+                    <span style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
+                      <Barcode size={16} color="var(--px-blue)" />
+                    </span>
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    className="px-btn px-btn--primary"
+                    style={{ 
+                      background: "var(--px-gradient-brand)", 
+                      width: "46px",
+                      minWidth: "46px", 
+                      height: "46px",
+                      borderRadius: "12px", 
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: 0,
+                      flexShrink: 0
+                    }}
+                    title="Confirmar alistamiento con código"
+                  >
+                    <Check size={20} />
+                  </button>
+                </form>
+                <div style={{ fontSize: "0.72rem", color: "var(--px-muted)", marginTop: "0.35rem", textAlign: "center" }}>
+                  ⚡ Apunta el láser al código de la caja para sumar y verificar automáticamente
+                </div>
+              </div>
 
               {/* Items in Order to Pick */}
               <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.1rem" }}>
