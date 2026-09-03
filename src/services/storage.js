@@ -316,6 +316,9 @@ export const storageService = {
           note: `Despacho Pedido #${order.id} - ${order.customer}. ${reviewerNotes || order.notes || ""}`
         };
 
+        // 1. Asentar inmediatamente en Kardex y descontar stock físico
+        await this.addMovement(movementData);
+        // 2. Transmitir salida a Business Central Cloud
         await bcService.postMovement(movementData);
       }
     }

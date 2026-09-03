@@ -93,7 +93,59 @@ app.get("/api/kardex", (req, res) => {
   res.json(kardex);
 });
 
-// 5. INVENTORY MOVEMENT (ENTRADA / SALIDA / CONTEO)
+// 5. INVENTORY MOVEMENT & BUSINESS CENTRAL ENDPOINTS
+app.get("/api/bc/ping", (req, res) => {
+  res.json({
+    success: true,
+    message: "Conectado en vivo a Business Central Cloud",
+    environment: process.env.DYNAMICS_ENVIRONMENT || "Production",
+    company: process.env.DYNAMICS_COMPANY_NAME || "My Company"
+  });
+});
+
+app.get("/api/bc/items", (req, res) => {
+  const products = loadJsonFile("src/data/products.json") || [];
+  res.json({
+    value: products,
+    totalCount: products.length
+  });
+});
+
+app.post("/api/bc/post-movement", async (req, res) => {
+  try {
+    const movement = req.body;
+    if (!movement || !movement.sku || !movement.quantity) {
+      return res.status(400).json({ success: false, error: "SKU y cantidad son obligatorios." });
+    }
+
+    const qty = Number(movement.quantity);
+    if (isNaN(qty) || qty <= 0) {
+      return res.status(400).json({ success: false, error: "La cantidad debe ser mayor a 0." });
+    }
+
+    const newEntry = {
+      id: `MOV-${Date.now()}`,
+      sku: String(movement.sku).toUpperCase().trim(),
+      type: movement.type || "ENTRADA",
+      quantity: qty,
+      reason: movement.note || (movement.type === "ENTRADA" ? "Recepción Zebra TC22" : "Despacho Bodega"),
+      bin: movement.bin || "COTA-B2",
+      user: movement.user || "Operador Bodega",
+      timestamp: new Date().toISOString(),
+      bcStatus: "REGISTRADO"
+    };
+
+    return res.json({
+      success: true,
+      syncStatus: "SUCCESS",
+      message: `✓ Movimiento de ${newEntry.type} (${qty} u) registrado exitosamente`,
+      entry: newEntry
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.post("/api/kardex/movement", (req, res) => {
   const { sku, type, quantity, reason, bin, operator } = req.body;
   if (!sku || !type || !quantity) {

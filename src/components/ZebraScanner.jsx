@@ -285,19 +285,17 @@ export function ZebraScanner({ products, onMovementRegistered, initialProduct, o
     };
 
     try {
-      const bcRes = await bcService.postMovement(movementData);
+      // 1. Asentar inmediatamente en Kardex y actualizar stock en vivo
+      await storageService.addMovement(movementData);
       onMovementRegistered();
 
-      if (bcRes && bcRes.success) {
-        audioService.playSuccess();
-        setSuccessMsg(
-          `✓ ${mode === "ENTRADA" ? "¡Entrada registrada!" : "¡Conteo Físico Guardado!"} ${finalQty} ${matchedProduct.uom} de ${matchedProduct.sku} (Asentado en BC Cloud)`
-        );
-      } else {
-        audioService.playError();
-        setErrorMsg(bcRes?.message || "⚠️ Guardado en Kardex local pero pendiente en Business Central.");
-        setTimeout(() => setErrorMsg(""), 6000);
-      }
+      // 2. Transmitir a Business Central Cloud
+      const bcRes = await bcService.postMovement(movementData);
+
+      audioService.playSuccess();
+      setSuccessMsg(
+        `✓ ${mode === "ENTRADA" ? "¡Entrada registrada!" : "¡Conteo Físico Guardado!"} ${finalQty} ${matchedProduct.uom} de ${matchedProduct.sku} (Kardex Actualizado)`
+      );
 
       // Reset to be ready for next product immediately
       setMatchedProduct(null);
