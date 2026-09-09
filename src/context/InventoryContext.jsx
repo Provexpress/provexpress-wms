@@ -23,9 +23,24 @@ export function InventoryProvider({ children }) {
       if (kRes.ok) {
         const kData = await kRes.json();
         if (kData && Array.isArray(kData.movements) && kData.movements.length > 0) {
-          serverKardex = kData.movements;
-          setMovements(serverKardex);
-          storageService.saveKardex(serverKardex);
+          const localKardex = storageService.getKardex();
+          const merged = kData.movements.map(sMov => {
+            const localMatch = localKardex.find(l => l.id === sMov.id || l.sku === sMov.sku);
+            if (localMatch) {
+              return {
+                ...sMov,
+                serialList: (localMatch.serialList && localMatch.serialList.length > 0) ? localMatch.serialList : sMov.serialList,
+                productName: localMatch.productName || sMov.productName,
+                user: localMatch.user || sMov.user,
+                bin: localMatch.bin || sMov.bin,
+                delta: localMatch.delta !== undefined ? localMatch.delta : sMov.delta
+              };
+            }
+            return sMov;
+          });
+          serverKardex = merged;
+          setMovements(merged);
+          storageService.saveKardex(merged);
         }
       }
 

@@ -3,7 +3,7 @@ import { Dashboard } from "../components/Dashboard";
 import { useInventory } from "../context/InventoryContext";
 
 export function DashboardPage({ onNavigate }) {
-  const { products, setSelectedProductForZebra } = useInventory();
+  const { products, movements, setSelectedProductForZebra } = useInventory();
 
   const handleOperateProduct = (product) => {
     setSelectedProductForZebra(product);
@@ -13,6 +13,7 @@ export function DashboardPage({ onNavigate }) {
   return (
     <Dashboard 
       products={products}
+      movements={movements}
       onSelectProduct={() => onNavigate("catalog")}
       onGoToZebra={() => onNavigate("inbound")}
       onOperateProduct={handleOperateProduct}

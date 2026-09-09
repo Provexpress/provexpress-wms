@@ -199,11 +199,11 @@ export const storageService = {
         notes: "Despacho prioritario para sucursal norte",
         items: [
           {
-            sku: "TEC-ZEB-001",
-            productName: "Handheld Zebra TC22 Android (Bodega COTA)",
+            sku: "SIM-TON-W1500A",
+            productName: "Tóner Negro HP LaserJet M111a / M111w / MFP M141a / M141w (150A / W1500A)",
             requestedQty: 1,
             pickedQty: 1,
-            serials: ["SN-ZEB-2026-001"],
+            serials: ["SN-W1500-2026-001"],
             isSerialized: true
           }
         ]
@@ -219,8 +219,8 @@ export const storageService = {
         notes: "Pedido regular de insumos",
         items: [
           {
-            sku: "TEST-PROV-001",
-            productName: "Producto de Prueba Creado desde Zebra TC22",
+            sku: "SIM-TON-CF258A",
+            productName: "Tóner Negro HP LaserJet Pro M404 / MFP M428 (58A / CF258A)",
             requestedQty: 2,
             pickedQty: 0,
             serials: [],

@@ -9,7 +9,7 @@ import {
 import { storageService } from "../services/storage";
 import { ReportsModal } from "./ReportsModal";
 
-export function Dashboard({ products, onSelectProduct, onGoToZebra, onOperateProduct, onGoToKardex, onGoToOutbound }) {
+export function Dashboard({ products, movements = [], onSelectProduct, onGoToZebra, onOperateProduct, onGoToKardex, onGoToOutbound }) {
   const [isReportsOpen, setIsReportsOpen] = useState(false);
 
   const formatCOP = (val) => {
@@ -51,7 +51,7 @@ export function Dashboard({ products, onSelectProduct, onGoToZebra, onOperatePro
 
   // Kardex Stats
   const kardexData = useMemo(() => {
-    const kardex = storageService.getKardex() || [];
+    const kardex = (movements && movements.length > 0) ? movements : (storageService.getKardex() || []);
     let totalEntradasUnits = 0;
     let totalSalidasUnits = 0;
     let totalConteosUnits = 0;
