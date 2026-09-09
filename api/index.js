@@ -179,30 +179,45 @@ app.get("/api/products", async (req, res) => {
 app.get("/api/kardex", async (req, res) => {
   try {
     const journalLines = await fetchBcJournalLines();
-    const bcMovements = journalLines.map(line => {
-      const desc = line.Description || "";
-      const isConteo = desc.toUpperCase().includes("CONTEO");
-      const isPositive = (line.Entry_Type === "Positive Adjmt." || line.EntryType === "Positive Adjmt.");
-      
-      let type = "SALIDA";
-      if (isConteo) {
-        type = "CONTEO";
-      } else if (isPositive) {
-        type = "ENTRADA";
-      }
+    const bcMovements = journalLines
+      .filter(line => line.Item_No && line.Item_No.trim().length > 0)
+      .reverse()
+      .map(line => {
+        const desc = line.Description || "";
+        const isConteo = desc.toUpperCase().includes("CONTEO");
+        const isPositive = (line.Entry_Type === "Positive Adjmt." || line.EntryType === "Positive Adjmt.");
+        
+        let type = "SALIDA";
+        if (isConteo) {
+          type = "CONTEO";
+        } else if (isPositive) {
+          type = "ENTRADA";
+        }
 
-      return {
-        id: line.Document_No || `MOV-${line.Line_No}`,
-        sku: line.Item_No,
-        type: type,
-        quantity: Number(line.Quantity) || 0,
-        timestamp: line.Posting_Date || new Date().toISOString(),
-        note: desc || "Transacción Business Central",
-        bin: "COTA-B2",
-        user: "Zebra TC22 / BC Cloud",
-        bcStatus: "SINCRONIZADO_EN_BC_CLOUD"
-      };
-    });
+        let parsedQty = Number(line.Quantity) || 0;
+        let parsedDelta = isPositive ? parsedQty : -parsedQty;
+
+        if (isConteo) {
+          const match = desc.match(/CONTEO\s+Fisico:\s*(\d+)u/i);
+          if (match) {
+            parsedQty = Number(match[1]);
+            parsedDelta = isPositive ? (Number(line.Quantity) || 0) : -(Number(line.Quantity) || 0);
+          }
+        }
+
+        return {
+          id: line.Document_No || `MOV-${line.Line_No}`,
+          sku: line.Item_No,
+          type: type,
+          quantity: parsedQty,
+          delta: parsedDelta,
+          timestamp: line.Posting_Date || new Date().toISOString(),
+          note: desc || "Transacción Business Central",
+          bin: "COTA-B2",
+          user: "Zebra TC22 / BC Cloud",
+          bcStatus: "SINCRONIZADO_EN_BC_CLOUD"
+        };
+      });
 
     const seenIds = new Set();
     const combined = [];
