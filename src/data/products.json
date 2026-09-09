@@ -670,7 +670,7 @@
     "oemCode": "CE278AC / 78A",
     "description": "Cartucho de Tóner Negro HP para HP LaserJet Pro P1566, P1606dn, M1536dnf MFP. Rendimiento estimado: 2.100 Páginas. Código OEM: CE278AC / 78A.",
     "barcode": "887111062802",
-    "rack": "Zona Tarimas",
+    "rack": "Zona Pisos",
     "tier": "Piso 3 (Contratos)",
     "barcode12": "887111062802"
   },
@@ -894,7 +894,7 @@
     "compatibility": "HP LaserJet P2035, P2035n, P2055d, P2055dn",
     "oemCode": "CE505AC / 05A",
     "description": "Cartucho de Tóner Negro HP para HP LaserJet P2035, P2035n, P2055d, P2055dn. Rendimiento estimado: 2.300 Páginas. Código OEM: CE505AC / 05A.",
-    "rack": "Zona Tarimas",
+    "rack": "Zona Pisos",
     "tier": "Piso 3 (Contratos)",
     "barcode": "887758522547",
     "barcode12": "887758522547"
@@ -1020,7 +1020,7 @@
     "oemCode": "CF226JC / 26JC",
     "description": "Cartucho de Tóner Negro HP para HP LaserJet Pro M402, MFP M426 Series. Rendimiento estimado: 9.000 Páginas. Código OEM: CF226JC / 26JC.",
     "barcode": "194850506437",
-    "rack": "Zona Tarimas",
+    "rack": "Zona Pisos",
     "tier": "Piso 3 (Contratos)",
     "barcode12": "194850506437"
   },
@@ -1045,7 +1045,7 @@
     "oemCode": "CF226XC / 26X",
     "description": "Cartucho de Tóner Negro HP para HP LaserJet Pro M402, MFP M426 Series. Rendimiento estimado: 9.000 Páginas. Código OEM: CF226XC / 26X.",
     "barcode": "889296531678",
-    "rack": "Zona Tarimas",
+    "rack": "Zona Pisos",
     "tier": "Piso 3 (Contratos)",
     "barcode12": "889296531678"
   },
@@ -1120,7 +1120,7 @@
     "oemCode": "CF258XC / 58X",
     "description": "Cartucho de Tóner Negro HP para HP LaserJet Pro M404, M406, MFP M428, M430. Rendimiento estimado: 10.000 Páginas. Código OEM: CF258XC / 58X.",
     "barcode": "192545175975",
-    "rack": "Zona Tarimas",
+    "rack": "Zona Pisos",
     "tier": "Piso 3 (Contratos)",
     "barcode12": "192545175975"
   },
@@ -1170,7 +1170,7 @@
     "oemCode": "CF280XC / 80X",
     "description": "Cartucho de Tóner Negro HP para HP LaserJet Pro 400 M401, MFP M425. Rendimiento estimado: 6.900 Páginas. Código OEM: CF280XC / 80X.",
     "barcode": "887111046123",
-    "rack": "Zona Tarimas",
+    "rack": "Zona Pisos",
     "tier": "Piso 3 (Contratos)",
     "barcode12": "887111046123"
   },
@@ -1269,7 +1269,7 @@
     "compatibility": "HP Color LaserJet Enterprise M855, Flow MFP M880",
     "oemCode": "CF313AC / 826A",
     "description": "Cartucho de Tóner Magenta HP para HP Color LaserJet Enterprise M855, Flow MFP M880. Rendimiento estimado: 31.500 Páginas. Código OEM: CF313AC / 826A.",
-    "rack": "Zona Tarimas",
+    "rack": "Zona Pisos",
     "tier": "Piso 3 (Contratos)",
     "barcode": "887758726419",
     "barcode12": "887758726419"
@@ -1795,7 +1795,7 @@
     "oemCode": "Q2612AC / 12A",
     "description": "Cartucho de Tóner Negro HP para HP LaserJet 1018, 1020, 1022, 3050, 3055. Rendimiento estimado: 2.000 Páginas. Código OEM: Q2612AC / 12A.",
     "barcode": "887111062772",
-    "rack": "Zona Tarimas",
+    "rack": "Zona Pisos",
     "tier": "Piso 3 (Contratos)",
     "barcode12": "887111062772"
   },
@@ -2420,7 +2420,7 @@
     "oemCode": "W1330XC / 330X",
     "description": "Cartucho de Tóner Negro HP para HP LaserJet 408dn, MFP 432fdn. Rendimiento estimado: 15.000 Páginas. Código OEM: W1330XC / 330X.",
     "barcode": "193905925902",
-    "rack": "Zona Tarimas",
+    "rack": "Zona Pisos",
     "tier": "Piso 3 (Contratos)",
     "barcode12": "193905925902"
   },

@@ -26,7 +26,7 @@ export function WarehouseMap({ products, onSelectProductForZebra, onGoToZebra })
   // Estante A: 4 niveles (A1, A2, A3, A4)
   // Estante B: 4 niveles (B1, B2, B3, B4)
   // Estante C: 2 niveles (C1, C2)
-  // Zona Tarimas: Piso 3 Contratos (PISO-3)
+  // Zona Pisos: Piso 3 Contratos (PISO-3)
   const BIN_DEFINITIONS = [
     // RACK A (4 niveles)
     { id: "COTA-A1", rack: "A", rackName: "Estante A", tier: 1, tierName: "Nivel 1 • Superior (Arriba)", capacity: 200, color: "#2563EB" },
@@ -45,7 +45,7 @@ export function WarehouseMap({ products, onSelectProductForZebra, onGoToZebra })
     { id: "COTA-C2", rack: "C", rackName: "Estante C", tier: 2, tierName: "Nivel 2 • Base / Inferior", capacity: 150, color: "#7C3AED" },
     
     // ZONA PISO 3
-    { id: "COTA-PISO-3", rack: "PISO", rackName: "Zona Tarimas", tier: 1, tierName: "Piso 3 • Contratos", capacity: 150, color: "#D97706" }
+    { id: "COTA-PISO-3", rack: "PISO", rackName: "Zona Pisos", tier: 1, tierName: "Piso 3 • Contratos", capacity: 150, color: "#D97706" }
   ];
 
   // Group products by bin
@@ -69,7 +69,7 @@ export function WarehouseMap({ products, onSelectProductForZebra, onGoToZebra })
         map[bId] = {
           id: bId,
           rack: bId.includes("A") ? "A" : bId.includes("B") ? "B" : bId.includes("C") ? "C" : "PISO",
-          rackName: bId.includes("A") ? "Estante A" : bId.includes("B") ? "Estante B" : bId.includes("C") ? "Estante C" : "Zona Tarimas",
+          rackName: bId.includes("A") ? "Estante A" : bId.includes("B") ? "Estante B" : bId.includes("C") ? "Estante C" : "Zona Pisos",
           tier: 1,
           tierName: bId,
           capacity: 150,
@@ -137,7 +137,7 @@ export function WarehouseMap({ products, onSelectProductForZebra, onGoToZebra })
     { key: "A", name: "Estante A", levelsLabel: "4 Niveles (A1 a A4)", subtitle: "Alta Rotación & Mayor Demanda", color: "var(--px-blue)", borderColor: "#2563EB", bins: ["COTA-A1", "COTA-A2", "COTA-A3", "COTA-A4"] },
     { key: "B", name: "Estante B", levelsLabel: "4 Niveles (B1 a B4)", subtitle: "Stock Intermedio & Variedad", color: "var(--px-green)", borderColor: "#10B981", bins: ["COTA-B1", "COTA-B2", "COTA-B3", "COTA-B4"] },
     { key: "C", name: "Estante C", levelsLabel: "2 Niveles (C1 y C2)", subtitle: "Formatos Especiales & Color", color: "var(--px-purple)", borderColor: "#7C3AED", bins: ["COTA-C1", "COTA-C2"] },
-    { key: "PISO", name: "Zona Tarimas", levelsLabel: "Piso 3 Contratos", subtitle: "Lotes Contractuales HP / Kyocera", color: "#D97706", borderColor: "#D97706", bins: ["COTA-PISO-3"] }
+    { key: "PISO", name: "Zona Pisos", levelsLabel: "Piso 3 Contratos", subtitle: "Lotes Contractuales HP / Kyocera", color: "#D97706", borderColor: "#D97706", bins: ["COTA-PISO-3"] }
   ];
 
   const visibleRacks = selectedRackFilter === "ALL" ? racks : racks.filter(r => r.key === selectedRackFilter);
@@ -175,7 +175,7 @@ export function WarehouseMap({ products, onSelectProductForZebra, onGoToZebra })
                 <MapPin size={13} /> Bodega Cota Principal
               </span>
               <span className="px-chip" style={{ color: "var(--px-green)", fontWeight: "700", background: "rgba(16, 185, 129, 0.08)" }}>
-                3 Racks (10 Niveles) + 1 Zona Tarimas
+                3 Racks (10 Niveles) + 1 Zona Pisos
               </span>
             </div>
             <h1 style={{ fontSize: "1.4rem", fontWeight: "800", color: "var(--px-text-strong)", margin: 0, letterSpacing: "-0.02em" }}>
