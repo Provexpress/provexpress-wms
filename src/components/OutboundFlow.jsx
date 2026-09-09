@@ -3,7 +3,7 @@ import {
   Package, ArrowUpRight, CheckCircle2, ShieldCheck, AlertCircle, Plus, 
   Search, X, QrCode, ClipboardCheck, ArrowRight, RotateCcw, Clock, 
   Truck, Check, AlertTriangle, UserCheck, FileText, Send, Minus, Sparkles,
-  Barcode
+  Barcode, Loader2
 } from "lucide-react";
 import { storageService } from "../services/storage";
 import { audioService } from "../services/audio";
@@ -13,6 +13,8 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
   const [subTab, setSubTab] = useState("picking"); // 'picking' | 'review' | 'history'
   const [orders, setOrders] = useState(storageService.getOrders());
   const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [isDispatching, setIsDispatching] = useState(false);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
   
   // New Order Form (Mobile-first full screen)
   const [showNewOrderForm, setShowNewOrderForm] = useState(false);
@@ -68,17 +70,23 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
     return orders.filter(o => o.status === "DESPACHADO");
   }, [orders]);
 
-  // Current active order in picking
+  // Current active order in picking (strictly BORRADOR or DEVUELTO)
   const currentPickingOrder = useMemo(() => {
-    if (selectedOrderId) return orders.find(o => o.id === selectedOrderId);
+    if (selectedOrderId) {
+      const match = activePickingOrders.find(o => o.id === selectedOrderId);
+      if (match) return match;
+    }
     return activePickingOrders[0] || null;
-  }, [orders, selectedOrderId, activePickingOrders]);
+  }, [selectedOrderId, activePickingOrders]);
 
-  // Current active order in review
+  // Current active order in review (strictly EN_REVISION)
   const currentReviewOrder = useMemo(() => {
-    if (selectedOrderId) return orders.find(o => o.id === selectedOrderId);
+    if (selectedOrderId) {
+      const match = pendingReviewOrders.find(o => o.id === selectedOrderId);
+      if (match) return match;
+    }
     return pendingReviewOrders[0] || null;
-  }, [orders, selectedOrderId, pendingReviewOrders]);
+  }, [selectedOrderId, pendingReviewOrders]);
 
   // Filtered products for new order builder
   const filteredProductsForOrder = useMemo(() => {
@@ -181,19 +189,30 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
 
   // 3. APPROVE AND DISPATCH (Fase 2)
   const handleApproveAndDispatch = async (orderId) => {
+    if (isDispatching) return;
+    setIsDispatching(true);
     setNotification("⏳ Despachando e insertando en Business Central...");
-    const res = await storageService.approveAndDispatchOrder(orderId, reviewerNote);
-    if (res.success) {
-      audioService.playSuccess();
-      refreshOrders();
-      setNotification(`🚀 ¡Salida oficial registrada y asentada en Business Central para Pedido #${orderId}!`);
-      setTimeout(() => setNotification(""), 5000);
-      setSubTab("history");
-      setSelectedOrderId(orderId);
-      setReviewerNote("");
-    } else {
+    try {
+      const res = await storageService.approveAndDispatchOrder(orderId, reviewerNote);
+      if (res.success) {
+        audioService.playSuccess();
+        refreshOrders();
+        setNotification(`🚀 ¡Salida oficial registrada y asentada en Business Central para Pedido #${orderId}!`);
+        setTimeout(() => setNotification(""), 5000);
+        setSelectedOrderId(null);
+        setSubTab("history");
+        setReviewerNote("");
+      } else {
+        audioService.playError();
+        setNotification(`❌ Error al despachar: ${res.error}`);
+        setTimeout(() => setNotification(""), 5000);
+      }
+    } catch (err) {
       audioService.playError();
-      setNotification(`❌ Error al despachar: ${res.error}`);
+      setNotification(`❌ Error al procesar despacho: ${err.message}`);
+      setTimeout(() => setNotification(""), 5000);
+    } finally {
+      setIsDispatching(false);
     }
   };
 
@@ -311,6 +330,7 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
 
   const handleSaveNewOrder = (e) => {
     if (e) e.preventDefault();
+    if (isSavingOrder) return;
     if (!newOrderCustomer.trim()) {
       alert("Por favor ingresa el nombre del cliente.");
       return;
@@ -320,29 +340,34 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
       return;
     }
 
-    const created = storageService.createOrder({
-      customer: newOrderCustomer.trim(),
-      destination: newOrderDestination.trim(),
-      notes: newOrderNotes.trim(),
-      items: selectedProductsForNewOrder.map(p => ({
-        sku: p.sku,
-        productName: p.name,
-        requestedQty: p.qty,
-        pickedQty: 0,
-        serials: [],
-        isSerialized: Boolean(p.isSerialized)
-      }))
-    });
+    setIsSavingOrder(true);
+    try {
+      const created = storageService.createOrder({
+        customer: newOrderCustomer.trim(),
+        destination: newOrderDestination.trim(),
+        notes: newOrderNotes.trim(),
+        items: selectedProductsForNewOrder.map(p => ({
+          sku: p.sku,
+          productName: p.name,
+          requestedQty: p.qty,
+          pickedQty: 0,
+          serials: [],
+          isSerialized: Boolean(p.isSerialized)
+        }))
+      });
 
-    refreshOrders();
-    audioService.playSuccess();
-    setShowNewOrderForm(false);
-    setSelectedOrderId(created.id);
-    setNewOrderCustomer("");
-    setSelectedProductsForNewOrder([]);
-    setProductSearch("");
-    setNotification(`✓ Pedido #${created.id} listo para Alistamiento.`);
-    setTimeout(() => setNotification(""), 4000);
+      refreshOrders();
+      audioService.playSuccess();
+      setShowNewOrderForm(false);
+      setSelectedOrderId(created.id);
+      setNewOrderCustomer("");
+      setSelectedProductsForNewOrder([]);
+      setProductSearch("");
+      setNotification(`✓ Pedido #${created.id} listo para Alistamiento.`);
+      setTimeout(() => setNotification(""), 4000);
+    } finally {
+      setIsSavingOrder(false);
+    }
   };
 
   return (
@@ -680,11 +705,12 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
             <button 
               type="button" 
               className="px-btn px-btn--primary" 
+              disabled={isSavingOrder}
               onClick={handleSaveNewOrder}
               style={{ 
                 width: "100%", 
                 minHeight: "48px", 
-                background: "var(--px-gradient-brand)", 
+                background: isSavingOrder ? "var(--px-muted)" : "var(--px-gradient-brand)", 
                 borderRadius: "12px", 
                 fontSize: "0.95rem", 
                 fontWeight: "800",
@@ -692,10 +718,21 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
                 alignItems: "center",
                 justifyContent: "center",
                 gap: "0.5rem",
-                boxShadow: "var(--px-neu-btn-primary)"
+                boxShadow: "var(--px-neu-btn-primary)",
+                opacity: isSavingOrder ? 0.7 : 1,
+                cursor: isSavingOrder ? "not-allowed" : "pointer"
               }}
             >
-              🚀 Iniciar Alistamiento ({selectedProductsForNewOrder.reduce((s, p) => s + p.qty, 0)} {selectedProductsForNewOrder.reduce((s, p) => s + p.qty, 0) === 1 ? "Unidad" : "Unidades"})
+              {isSavingOrder ? (
+                <>
+                  <Loader2 size={18} className="px-spin" />
+                  <span>Creando Pedido...</span>
+                </>
+              ) : (
+                <>
+                  🚀 Iniciar Alistamiento ({selectedProductsForNewOrder.reduce((s, p) => s + p.qty, 0)} {selectedProductsForNewOrder.reduce((s, p) => s + p.qty, 0) === 1 ? "Unidad" : "Unidades"})
+                </>
+              )}
             </button>
 
             <button 
@@ -1136,16 +1173,28 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
                 <button 
                   type="button"
                   className="px-btn px-btn--primary"
+                  disabled={isDispatching}
                   onClick={() => handleApproveAndDispatch(currentReviewOrder.id)}
                   style={{ 
                     width: "100%",
                     minHeight: "48px", fontSize: "0.95rem", fontWeight: "800", 
-                    background: "var(--px-green)", borderRadius: "12px",
+                    background: isDispatching ? "var(--px-muted)" : "var(--px-green)", borderRadius: "12px",
                     display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem",
-                    boxShadow: "var(--px-neu-btn-primary)"
+                    boxShadow: "var(--px-neu-btn-primary)",
+                    opacity: isDispatching ? 0.7 : 1,
+                    cursor: isDispatching ? "not-allowed" : "pointer"
                   }}
                 >
-                  <Check size={18} /> Aprobar Salida Oficial en BC
+                  {isDispatching ? (
+                    <>
+                      <Loader2 size={18} className="px-spin" />
+                      <span>Despachando y Asentando en BC...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check size={18} /> Aprobar Salida Oficial en BC
+                    </>
+                  )}
                 </button>
 
                 <button 

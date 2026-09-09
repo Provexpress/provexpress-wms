@@ -265,8 +265,8 @@ export function ZebraScanner({ products, onMovementRegistered, initialProduct, o
     setIsProcessing(true);
 
     const finalQty = matchedProduct.isSerialized ? scannedSerials.length : Number(quantity);
-    if (finalQty <= 0) {
-      setErrorMsg("La cantidad debe ser mayor a 0.");
+    if (isNaN(finalQty) || finalQty <= 0) {
+      setErrorMsg("La cantidad debe ser un número entero mayor a 0.");
       setIsProcessing(false);
       return;
     }

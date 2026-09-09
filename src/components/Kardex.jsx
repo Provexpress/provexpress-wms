@@ -201,7 +201,11 @@ export function Kardex({ movements }) {
                     <td style={{ textAlign: "center" }}>
                       {isEntrada && <span className="px-badge px-badge--success">ENTRADA</span>}
                       {isSalida && <span className="px-badge px-badge--danger">SALIDA</span>}
-                      {isConteo && <span className="px-badge px-badge--warning">CONTEO</span>}
+                      {isConteo && (
+                        <span className="px-badge" style={{ background: "rgba(147, 51, 234, 0.12)", color: "var(--px-purple)", border: "1px solid rgba(147, 51, 234, 0.3)", fontWeight: "800" }}>
+                          CONTEO FÍSICO
+                        </span>
+                      )}
                     </td>
                     <td style={{ whiteSpace: "nowrap" }}>
                       <span className="px-mono" style={{ 
@@ -225,10 +229,15 @@ export function Kardex({ movements }) {
                       <span className="px-mono" style={{ 
                         fontSize: "0.92rem", 
                         fontWeight: "800",
-                        color: isSalida ? "var(--px-red)" : isEntrada ? "var(--px-green)" : "var(--px-amber)"
+                        color: isSalida ? "var(--px-red)" : isEntrada ? "var(--px-green)" : "var(--px-purple)"
                       }}>
-                        {isSalida ? `-${m.quantity}` : `+${m.quantity}`}
+                        {isConteo ? `= ${m.quantity}` : (isSalida ? `-${m.quantity}` : `+${m.quantity}`)}
                       </span>
+                      {isConteo && m.delta !== undefined && m.delta !== 0 && (
+                        <div style={{ fontSize: "0.68rem", fontWeight: "700", color: m.delta > 0 ? "var(--px-green)" : "var(--px-red)" }}>
+                          Ajuste: {m.delta > 0 ? `+${m.delta}` : m.delta}
+                        </div>
+                      )}
                     </td>
                     <td style={{ fontSize: "0.76rem", fontWeight: "600", color: "var(--px-muted)" }}>
                       {m.bin || m.location || "COTA-SUM-01"}

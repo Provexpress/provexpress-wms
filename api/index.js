@@ -176,17 +176,30 @@ app.get("/api/products", async (req, res) => {
 app.get("/api/kardex", async (req, res) => {
   try {
     const journalLines = await fetchBcJournalLines();
-    const movements = journalLines.map(line => ({
-      id: line.Document_No || `MOV-${line.Line_No}`,
-      sku: line.Item_No,
-      type: (line.Entry_Type === "Positive Adjmt." || line.EntryType === "Positive Adjmt.") ? "ENTRADA" : "SALIDA",
-      quantity: Number(line.Quantity) || 0,
-      timestamp: line.Posting_Date || new Date().toISOString(),
-      note: line.Description || "Transacción Business Central",
-      bin: "COTA-B2",
-      user: "Zebra TC22 / BC Cloud",
-      bcStatus: "SINCRONIZADO_EN_BC_CLOUD"
-    }));
+    const movements = journalLines.map(line => {
+      const desc = line.Description || "";
+      const isConteo = desc.toUpperCase().includes("CONTEO");
+      const isPositive = (line.Entry_Type === "Positive Adjmt." || line.EntryType === "Positive Adjmt.");
+      
+      let type = "SALIDA";
+      if (isConteo) {
+        type = "CONTEO";
+      } else if (isPositive) {
+        type = "ENTRADA";
+      }
+
+      return {
+        id: line.Document_No || `MOV-${line.Line_No}`,
+        sku: line.Item_No,
+        type: type,
+        quantity: Number(line.Quantity) || 0,
+        timestamp: line.Posting_Date || new Date().toISOString(),
+        note: desc || "Transacción Business Central",
+        bin: "COTA-B2",
+        user: "Zebra TC22 / BC Cloud",
+        bcStatus: "SINCRONIZADO_EN_BC_CLOUD"
+      };
+    });
 
     res.json({ movements });
   } catch (err) {
@@ -235,52 +248,105 @@ app.post("/api/bc/post-movement", async (req, res) => {
     }
 
     const sku = String(movement.sku).toUpperCase().trim();
-    const isPositive = movement.type === "ENTRADA";
-    const entryType = isPositive ? "Positive Adjmt." : "Negative Adjmt.";
     const docNo = `MOV-${Date.now().toString().slice(-6)}`;
+    const moveType = movement.type || "ENTRADA";
+
+    // 1. Calcular inventario actual previo para determinar el delta en CONTEO
+    const defaultProds = getBaseProducts();
+    const journalLines = await fetchBcJournalLines();
+    const prod = defaultProds.find(p => p.sku.toUpperCase() === sku);
+    const baseStock = prod ? (Number(prod.stock) || 0) : 0;
+    let netJournalDelta = 0;
+    journalLines.forEach(line => {
+      if ((line.Item_No || "").toUpperCase() === sku) {
+        const q = Number(line.Quantity) || 0;
+        const eType = line.Entry_Type || line.EntryType;
+        if (eType === "Positive Adjmt.") netJournalDelta += q;
+        else if (eType === "Negative Adjmt.") netJournalDelta -= q;
+      }
+    });
+    const currentStock = Math.max(0, baseStock + netJournalDelta);
+
+    let entryType = "Positive Adjmt.";
+    let bcQuantity = qty;
+    let delta = 0;
+    let shouldPostToBC = true;
+
+    if (moveType === "ENTRADA") {
+      entryType = "Positive Adjmt.";
+      bcQuantity = qty;
+      delta = qty;
+    } else if (moveType === "SALIDA") {
+      entryType = "Negative Adjmt.";
+      bcQuantity = qty;
+      delta = -qty;
+    } else if (moveType === "CONTEO") {
+      // Conteo físico: Delta = cantidad física contada - stock en sistema
+      delta = qty - currentStock;
+      if (delta > 0) {
+        entryType = "Positive Adjmt.";
+        bcQuantity = delta;
+      } else if (delta < 0) {
+        entryType = "Negative Adjmt.";
+        bcQuantity = Math.abs(delta);
+      } else {
+        // Conteo coincide exactamente con el inventario actual
+        shouldPostToBC = false;
+        bcQuantity = 0;
+      }
+    }
+
+    const desc = moveType === "CONTEO"
+      ? `CONTEO Fisico: ${qty}u (Ajuste: ${delta >= 0 ? '+' : ''}${delta})`
+      : `${moveType} Zebra TC22 (${qty} u)`;
 
     // Transmitir directamente a Business Central Cloud
     let bcPosted = false;
     let bcError = null;
-    try {
-      const token = await getAccessToken();
-      const odataUrl = `https://api.businesscentral.dynamics.com/v2.0/${BC_CONFIG.tenantId}/${BC_CONFIG.environment}/ODataV4/Company('${encodeURIComponent(BC_CONFIG.companyName)}')/PXItemJournal`;
-      const journalPayload = {
-        Journal_Template_Name: "ITEM",
-        Journal_Batch_Name: "DEFAULT",
-        Posting_Date: new Date().toISOString().split("T")[0],
-        Entry_Type: entryType,
-        Document_No: docNo,
-        Item_No: sku,
-        Quantity: qty,
-        Gen_Prod_Posting_Group: "RETAIL",
-        Description: `${movement.type} Zebra TC22 (${qty} u)`.slice(0, 50)
-      };
+    if (shouldPostToBC) {
+      try {
+        const token = await getAccessToken();
+        const odataUrl = `https://api.businesscentral.dynamics.com/v2.0/${BC_CONFIG.tenantId}/${BC_CONFIG.environment}/ODataV4/Company('${encodeURIComponent(BC_CONFIG.companyName)}')/PXItemJournal`;
+        const journalPayload = {
+          Journal_Template_Name: "ITEM",
+          Journal_Batch_Name: "DEFAULT",
+          Posting_Date: new Date().toISOString().split("T")[0],
+          Entry_Type: entryType,
+          Document_No: docNo,
+          Item_No: sku,
+          Quantity: bcQuantity,
+          Gen_Prod_Posting_Group: "RETAIL",
+          Description: desc.slice(0, 50)
+        };
 
-      const bcRes = await fetch(odataUrl, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(journalPayload)
-      });
+        const bcRes = await fetch(odataUrl, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(journalPayload)
+        });
 
-      if (bcRes.ok) {
-        bcPosted = true;
-      } else {
-        bcError = await bcRes.text();
+        if (bcRes.ok) {
+          bcPosted = true;
+        } else {
+          bcError = await bcRes.text();
+        }
+      } catch (e) {
+        bcError = e.message;
       }
-    } catch (e) {
-      bcError = e.message;
+    } else {
+      bcPosted = true; // Sin diferencias en auditoría, conteo coincide al 100%
     }
 
     const newEntry = {
       id: docNo,
       sku: sku,
-      type: movement.type || "ENTRADA",
+      type: moveType,
       quantity: qty,
-      reason: movement.note || (isPositive ? "Recepción Zebra TC22" : "Despacho Bodega"),
+      delta: delta,
+      reason: movement.note || desc,
       bin: movement.bin || "COTA-B2",
       user: movement.user || "Operador Bodega",
       timestamp: new Date().toISOString(),
@@ -292,7 +358,9 @@ app.post("/api/bc/post-movement", async (req, res) => {
       success: true,
       syncStatus: bcPosted ? "SUCCESS" : "PARTIAL",
       message: bcPosted 
-        ? `✓ Asentado en Business Central Cloud (${movement.type} ${qty} u)` 
+        ? (moveType === "CONTEO" 
+            ? `✓ Conteo físico asentado: ${qty} u en estante (Ajuste: ${delta >= 0 ? '+' : ''}${delta})`
+            : `✓ Asentado en Business Central Cloud (${moveType} ${qty} u)`)
         : `⚠️ Registrado pero pendiente en BC: ${bcError?.slice(0, 100)}`,
       entry: newEntry
     });

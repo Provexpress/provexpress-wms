@@ -120,15 +120,19 @@ export const storageService = {
     
     const prodIndex = products.findIndex(p => p.sku.toUpperCase() === movement.sku.toUpperCase());
     const qty = Number(movement.quantity) || 1;
+    let delta = 0;
     if (prodIndex >= 0) {
       const currentStock = Number(products[prodIndex].stock) || 0;
       let newStock = currentStock;
       
       if (movement.type === "ENTRADA") {
         newStock += qty;
+        delta = qty;
       } else if (movement.type === "SALIDA") {
         newStock = Math.max(0, currentStock - qty);
+        delta = -qty;
       } else if (movement.type === "CONTEO") {
+        delta = qty - currentStock;
         newStock = qty;
       }
       
@@ -159,6 +163,7 @@ export const storageService = {
     const newEntry = {
       id: "MOV-" + Date.now().toString().slice(-6),
       timestamp: new Date().toLocaleString("es-CO"),
+      delta: delta,
       ...movement,
       serialList: movement.serialList || (movement.serialNo ? [movement.serialNo] : [])
     };
@@ -297,9 +302,24 @@ export const storageService = {
     if (idx < 0) return { success: false, error: "Pedido no encontrado" };
 
     const order = orders[idx];
+    if (order.status === "DESPACHADO") {
+      return { success: false, error: "Este pedido ya fue despachado previamente." };
+    }
+    if (order.status !== "EN_REVISION") {
+      return { success: false, error: "El pedido debe estar en estado EN_REVISION para ser despachado." };
+    }
+
     const reviewer = this.getUserRole();
 
-    // 1. Process Salida for each item line in order
+    // 1. Mark order as DESPACHADO immediately to block concurrent clicks
+    order.status = "DESPACHADO";
+    order.reviewerUser = reviewer;
+    order.dispatchedAt = new Date().toLocaleString("es-CO");
+    order.reviewerNotes = reviewerNotes;
+    orders[idx] = order;
+    this.saveOrders(orders);
+
+    // 2. Process Salida for each item line in order
     for (const item of order.items) {
       const qty = item.pickedQty || item.requestedQty || 1;
       if (qty > 0) {
@@ -316,21 +336,12 @@ export const storageService = {
           note: `Despacho Pedido #${order.id} - ${order.customer}. ${reviewerNotes || order.notes || ""}`
         };
 
-        // 1. Asentar inmediatamente en Kardex y descontar stock físico
+        // Asentar inmediatamente en Kardex y descontar stock físico
         await this.addMovement(movementData);
-        // 2. Transmitir salida a Business Central Cloud
+        // Transmitir salida a Business Central Cloud
         await bcService.postMovement(movementData);
       }
     }
-
-    // 2. Mark order as DESPACHADO
-    order.status = "DESPACHADO";
-    order.reviewerUser = reviewer;
-    order.dispatchedAt = new Date().toLocaleString("es-CO");
-    order.reviewerNotes = reviewerNotes;
-
-    orders[idx] = order;
-    this.saveOrders(orders);
 
     return { success: true, order };
   },
