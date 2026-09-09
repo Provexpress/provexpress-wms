@@ -84,7 +84,7 @@ export function Dashboard({ products, movements = [], onSelectProduct, onGoToZeb
       conteosCount,
       netBalance: totalEntradasUnits - totalSalidasUnits
     };
-  }, []);
+  }, [movements]);
 
   // Brand Distribution Analytics
   const brandStats = useMemo(() => {
@@ -436,6 +436,7 @@ export function Dashboard({ products, movements = [], onSelectProduct, onGoToZeb
               kardexData.recentMovements.map(m => {
                 const isEntrada = m.type === "ENTRADA";
                 const isSalida = m.type === "SALIDA";
+                const isConteo = m.type === "CONTEO";
                 return (
                   <div 
                     key={m.id}
@@ -452,15 +453,15 @@ export function Dashboard({ products, movements = [], onSelectProduct, onGoToZeb
                     <div style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
                       <div style={{ 
                         width: "28px", height: "28px", borderRadius: "6px", 
-                        background: isEntrada ? "rgba(16,185,129,0.15)" : isSalida ? "rgba(239,68,68,0.15)" : "rgba(217,119,6,0.15)",
+                        background: isEntrada ? "rgba(16,185,129,0.15)" : isSalida ? "rgba(239,68,68,0.15)" : "rgba(147,51,234,0.15)",
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        color: isEntrada ? "var(--px-green)" : isSalida ? "var(--px-red)" : "var(--px-amber)"
+                        color: isEntrada ? "var(--px-green)" : isSalida ? "var(--px-red)" : "var(--px-purple)"
                       }}>
                         {isEntrada ? <ArrowDownLeft size={15} /> : isSalida ? <ArrowUpRight size={15} /> : <ClipboardList size={15} />}
                       </div>
                       <div>
                         <div style={{ fontSize: "0.78rem", fontWeight: "700", color: "var(--px-text-strong)" }}>
-                          {m.type}: <span className="px-mono" style={{ color: "var(--px-blue)" }}>{m.sku}</span> ({m.type === "SALIDA" ? `-${m.quantity}` : `+${m.quantity}`})
+                          {isConteo ? "CONTEO FÍSICO" : m.type}: <span className="px-mono" style={{ color: "var(--px-blue)" }}>{m.sku}</span> ({isConteo ? `= ${m.quantity} u` : (isSalida ? `-${m.quantity} u` : `+${m.quantity} u`)})
                         </div>
                         <div style={{ fontSize: "0.68rem", color: "var(--px-muted)" }}>
                           {m.timestamp} • {m.user || "Terminal Zebra"}
@@ -468,8 +469,11 @@ export function Dashboard({ products, movements = [], onSelectProduct, onGoToZeb
                       </div>
                     </div>
 
-                    <span className="px-badge px-badge--success" style={{ fontSize: "0.65rem", padding: "1px 5px" }}>
-                      <CheckCircle2 size={11} /> BC Cloud
+                    <span 
+                      className={`px-badge ${m.bcStatus === "PENDIENTE_BC" ? "px-badge--warning" : "px-badge--success"}`} 
+                      style={{ fontSize: "0.65rem", padding: "1px 5px" }}
+                    >
+                      <CheckCircle2 size={11} /> {m.bcStatus === "PENDIENTE_BC" ? "Local" : "BC Cloud"}
                     </span>
                   </div>
                 );

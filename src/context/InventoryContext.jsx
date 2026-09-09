@@ -22,22 +22,35 @@ export function InventoryProvider({ children }) {
       let serverKardex = [];
       if (kRes.ok) {
         const kData = await kRes.json();
-        if (kData && Array.isArray(kData.movements) && kData.movements.length > 0) {
-          const localKardex = storageService.getKardex();
-          const merged = kData.movements.map(sMov => {
-            const localMatch = localKardex.find(l => l.id === sMov.id || l.sku === sMov.sku);
-            if (localMatch) {
-              return {
-                ...sMov,
-                serialList: (localMatch.serialList && localMatch.serialList.length > 0) ? localMatch.serialList : sMov.serialList,
-                productName: localMatch.productName || sMov.productName,
-                user: localMatch.user || sMov.user,
-                bin: localMatch.bin || sMov.bin,
-                delta: localMatch.delta !== undefined ? localMatch.delta : sMov.delta
-              };
-            }
-            return sMov;
+        if (kData && Array.isArray(kData.movements)) {
+          const localKardex = storageService.getKardex() || [];
+          const seenIds = new Set();
+          const merged = [];
+
+          // 1. Incorporar transacciones de servidor / Business Central
+          kData.movements.forEach(sMov => {
+            const localMatch = localKardex.find(l => l.id === sMov.id);
+            const entry = localMatch ? {
+              ...sMov,
+              serialList: (localMatch.serialList && localMatch.serialList.length > 0) ? localMatch.serialList : sMov.serialList,
+              productName: localMatch.productName || sMov.productName,
+              user: localMatch.user || sMov.user,
+              bin: localMatch.bin || sMov.bin,
+              delta: localMatch.delta !== undefined ? localMatch.delta : sMov.delta
+            } : sMov;
+
+            if (entry.id) seenIds.add(entry.id);
+            merged.push(entry);
           });
+
+          // 2. Retener movimientos locales recientes que aún estén en tránsito
+          localKardex.forEach(lMov => {
+            if (lMov && lMov.id && !seenIds.has(lMov.id)) {
+              seenIds.add(lMov.id);
+              merged.push(lMov);
+            }
+          });
+
           serverKardex = merged;
           setMovements(merged);
           storageService.saveKardex(merged);
@@ -97,6 +110,15 @@ export function InventoryProvider({ children }) {
   }, [loadServerData]);
 
   const refreshLocalData = useCallback(async () => {
+    // Actualización inmediata sin latencia en la pantalla actual
+    const localKardex = storageService.getKardex();
+    if (localKardex && localKardex.length > 0) {
+      setMovements([...localKardex]);
+    }
+    const localProds = storageService.getProducts();
+    if (localProds && localProds.length > 0) {
+      setProducts([...localProds]);
+    }
     await loadServerData();
   }, [loadServerData]);
 

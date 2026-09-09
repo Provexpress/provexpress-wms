@@ -286,11 +286,11 @@ export function ZebraScanner({ products, onMovementRegistered, initialProduct, o
 
     try {
       // 1. Asentar inmediatamente en Kardex y actualizar stock en vivo
-      await storageService.addMovement(movementData);
+      const savedMovement = await storageService.addMovement(movementData);
       onMovementRegistered();
 
       // 2. Transmitir a Business Central Cloud
-      const bcRes = await bcService.postMovement(movementData);
+      const bcRes = await bcService.postMovement({ ...movementData, id: savedMovement?.id });
 
       audioService.playSuccess();
       setSuccessMsg(

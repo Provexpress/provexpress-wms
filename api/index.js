@@ -27,6 +27,9 @@ function getBaseProducts() {
   }
 }
 
+// In-memory central buffer of all recent transactions across devices
+const centralMovementsLog = [];
+
 // =========================================================================
 // BUSINESS CENTRAL CLOUD CONFIGURATION & OAUTH2
 // =========================================================================
@@ -176,7 +179,7 @@ app.get("/api/products", async (req, res) => {
 app.get("/api/kardex", async (req, res) => {
   try {
     const journalLines = await fetchBcJournalLines();
-    const movements = journalLines.map(line => {
+    const bcMovements = journalLines.map(line => {
       const desc = line.Description || "";
       const isConteo = desc.toUpperCase().includes("CONTEO");
       const isPositive = (line.Entry_Type === "Positive Adjmt." || line.EntryType === "Positive Adjmt.");
@@ -201,10 +204,29 @@ app.get("/api/kardex", async (req, res) => {
       };
     });
 
-    res.json({ movements });
+    const seenIds = new Set();
+    const combined = [];
+
+    // 1. Priorizar transacciones registradas en tiempo real en la app (incluye Conteos con delta 0)
+    centralMovementsLog.forEach(m => {
+      if (!seenIds.has(m.id)) {
+        seenIds.add(m.id);
+        combined.push(m);
+      }
+    });
+
+    // 2. Incluir transacciones de Business Central
+    bcMovements.forEach(m => {
+      if (!seenIds.has(m.id)) {
+        seenIds.add(m.id);
+        combined.push(m);
+      }
+    });
+
+    res.json({ movements: combined });
   } catch (err) {
     console.error("Error in /api/kardex:", err);
-    res.json({ movements: [] });
+    res.json({ movements: centralMovementsLog });
   }
 });
 
@@ -248,7 +270,7 @@ app.post("/api/bc/post-movement", async (req, res) => {
     }
 
     const sku = String(movement.sku).toUpperCase().trim();
-    const docNo = `MOV-${Date.now().toString().slice(-6)}`;
+    const docNo = (movement.id && String(movement.id).startsWith("MOV-")) ? movement.id : `MOV-${Date.now().toString().slice(-6)}`;
     const moveType = movement.type || "ENTRADA";
 
     // 1. Calcular inventario actual previo para determinar el delta en CONTEO
@@ -343,16 +365,21 @@ app.post("/api/bc/post-movement", async (req, res) => {
     const newEntry = {
       id: docNo,
       sku: sku,
+      productName: movement.productName || sku,
       type: moveType,
       quantity: qty,
       delta: delta,
       reason: movement.note || desc,
+      note: movement.note || desc,
       bin: movement.bin || "COTA-B2",
       user: movement.user || "Operador Bodega",
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toLocaleString("es-CO"),
       bcStatus: bcPosted ? "SINCRONIZADO_EN_BC_CLOUD" : "PENDIENTE_BC",
       bcError: bcError
     };
+
+    centralMovementsLog.unshift(newEntry);
+    if (centralMovementsLog.length > 200) centralMovementsLog.pop();
 
     return res.json({
       success: true,

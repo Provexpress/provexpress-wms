@@ -337,9 +337,9 @@ export const storageService = {
         };
 
         // Asentar inmediatamente en Kardex y descontar stock físico
-        await this.addMovement(movementData);
+        const savedMovement = await this.addMovement(movementData);
         // Transmitir salida a Business Central Cloud
-        await bcService.postMovement(movementData);
+        await bcService.postMovement({ ...movementData, id: savedMovement?.id });
       }
     }
 
