@@ -365,61 +365,36 @@ export function ZebraScanner({ products, onMovementRegistered, initialProduct, o
   return (
     <div style={{ width: "100%", maxWidth: "600px", margin: "0 auto", padding: "0.5rem 0.5rem 5rem 0.5rem", boxSizing: "border-box", overflowX: "hidden" }}>
       
-      {/* 1. Top Header: Operator focused single header vs Supervisor mode switcher */}
-      {isOperator ? (
-        <div style={{ 
-          display: "flex", 
-          alignItems: "center", 
-          justifyContent: "space-between", 
-          padding: "0.55rem 0.75rem", 
-          background: "var(--px-surface)", 
-          borderRadius: "var(--px-radius-md)", 
-          border: "1px solid var(--px-border)", 
-          marginBottom: "0.65rem", 
-          boxShadow: "var(--px-neu-flat)" 
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "rgba(16, 185, 129, 0.15)", color: "var(--px-green)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <ArrowDownLeft size={18} />
-            </div>
-            <div>
-              <div style={{ fontWeight: "800", fontSize: "0.92rem", color: "var(--px-text-strong)" }}>Recepción de Tóners</div>
-              <div style={{ fontSize: "0.7rem", color: "var(--px-muted)" }}>Bodega Cota • Terminal Zebra TC22</div>
-            </div>
-          </div>
-          <span className="px-chip" style={{ color: "var(--px-green)", fontWeight: "800", background: "rgba(16, 185, 129, 0.1)", fontSize: "0.72rem" }}>
-            <span className="px-live-dot" style={{ width: "6px", height: "6px" }}></span> Láser Listo
-          </span>
-        </div>
-      ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", marginBottom: "0.65rem" }}>
-          <button 
-            type="button"
-            className={`px-btn ${mode === "ENTRADA" ? "px-btn--primary" : "px-btn--secondary"}`}
-            onClick={() => { setMode("ENTRADA"); setMatchedProduct(null); setScannedSerials([]); setQuantity(1); }}
-            style={{ 
-              background: mode === "ENTRADA" ? "var(--px-gradient-green)" : undefined, 
-              color: mode === "ENTRADA" ? "#ffffff" : "var(--px-text-strong)", 
-              minHeight: "44px", fontWeight: "800", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem", fontSize: "0.85rem", borderRadius: "var(--px-radius-md)"
-            }}
-          >
-            <ArrowDownLeft size={16} /> Recepción
-          </button>
+      {/* 1. Mode Switcher (Recepción vs Conteo Físico) - Habilitado para Operador y Supervisor */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", marginBottom: "0.65rem" }}>
+        <button 
+          type="button"
+          className={`px-btn ${mode === "ENTRADA" ? "px-btn--primary" : "px-btn--secondary"}`}
+          onClick={() => { setMode("ENTRADA"); setMatchedProduct(null); setScannedSerials([]); setQuantity(1); }}
+          style={{ 
+            background: mode === "ENTRADA" ? "var(--px-gradient-green)" : undefined, 
+            color: mode === "ENTRADA" ? "#ffffff" : "var(--px-text-strong)", 
+            minHeight: "44px", fontWeight: "800", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem", fontSize: "0.85rem", borderRadius: "var(--px-radius-md)",
+            boxShadow: mode === "ENTRADA" ? "0 3px 10px rgba(16, 185, 129, 0.3)" : undefined
+          }}
+        >
+          <ArrowDownLeft size={16} /> Recepción
+        </button>
 
-          <button 
-            type="button"
-            className={`px-btn ${mode === "CONTEO" ? "px-btn--primary" : "px-btn--secondary"}`}
-            onClick={() => { setMode("CONTEO"); setMatchedProduct(null); setScannedSerials([]); setQuantity(1); }}
-            style={{ 
-              background: mode === "CONTEO" ? "var(--px-gradient-purple)" : undefined, 
-              color: mode === "CONTEO" ? "#ffffff" : "var(--px-text-strong)", 
-              minHeight: "44px", fontWeight: "800", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem", fontSize: "0.85rem", borderRadius: "var(--px-radius-md)"
-            }}
-          >
-            <ClipboardList size={16} /> Conteo Físico
-          </button>
-        </div>
-      )}
+        <button 
+          type="button"
+          className={`px-btn ${mode === "CONTEO" ? "px-btn--primary" : "px-btn--secondary"}`}
+          onClick={() => { setMode("CONTEO"); setMatchedProduct(null); setScannedSerials([]); setQuantity(1); }}
+          style={{ 
+            background: mode === "CONTEO" ? "var(--px-gradient-purple)" : undefined, 
+            color: mode === "CONTEO" ? "#ffffff" : "var(--px-text-strong)", 
+            minHeight: "44px", fontWeight: "800", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem", fontSize: "0.85rem", borderRadius: "var(--px-radius-md)",
+            boxShadow: mode === "CONTEO" ? "0 3px 10px rgba(147, 51, 234, 0.3)" : undefined
+          }}
+        >
+          <ClipboardList size={16} /> Conteo Físico
+        </button>
+      </div>
 
       {/* Status Alerts */}
       {successMsg && (

@@ -99,7 +99,7 @@ const USERS_ROLES = {
   "1234": { 
     role: "OPERADOR", 
     name: "Operador Bodega Cota", 
-    permissions: ["SCAN", "ENTRADA", "DESPACHO", "VIEW_MAP", "VIEW_CATALOG"] 
+    permissions: ["SCAN", "ENTRADA", "CONTEO", "DESPACHO", "VIEW_MAP", "VIEW_CATALOG"] 
   },
   "4321": { 
     role: "SUPERVISOR", 

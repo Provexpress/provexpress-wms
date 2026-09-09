@@ -8,9 +8,9 @@ export const ROLES_CONFIG = {
     badgeColor: "var(--px-green)",
     defaultRoute: "inbound",
     allowedRoutes: ["inbound", "outbound", "map", "catalog"],
-    description: "Recepción Zebra TC22, Despachos, Ubicación física en estantes y Consulta de referencias.",
+    description: "Recepción Zebra TC22, Conteo físico en estantes, Despachos y Consulta de referencias.",
     pinHint: "1234",
-    permissions: ["SCAN", "ENTRADA", "DESPACHO", "VIEW_MAP", "VIEW_CATALOG"]
+    permissions: ["SCAN", "ENTRADA", "CONTEO", "DESPACHO", "VIEW_MAP", "VIEW_CATALOG"]
   },
   SUPERVISOR: {
     role: "SUPERVISOR",
