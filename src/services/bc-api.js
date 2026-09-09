@@ -170,16 +170,20 @@ export const bcService = {
             unitCost: cost,
             unitPrice: price,
             totalValue: Math.round(stock * cost),
-            location: "COTA",
-            bin: "COTA-A01-N1-P01",
-            gtin: item.gtin || sku,
+            location: existingProd?.location || "COTA",
+            bin: existingProd?.bin || "COTA-A1",
+            rack: existingProd?.rack,
+            tier: existingProd?.tier,
+            gtin: item.gtin || existingProd?.gtin || sku,
+            barcode: existingProd?.barcode,
+            barcode12: existingProd?.barcode12,
             isSerialized: sku.includes("TEC-ZEB") || descUpper.includes("PORTATIL") || descUpper.includes("CELULAR") || descUpper.includes("IMPRESORA")
           };
         });
 
         storageService.saveProducts(liveItems);
         const cfg = storageService.getConfig();
-        cfg.lastSync = new Date().toLocaleString("es-CO");
+        cfg.lastSync = new Date().toLocaleString("es-CO", { timeZone: "America/Bogota" });
         cfg.isConnected = true;
         storageService.saveConfig(cfg);
 

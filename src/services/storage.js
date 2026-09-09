@@ -5,11 +5,13 @@ const INVENTORY_SKU_PREFIX = "SIM-TON-";
 
 function normalizeInventorySku(value) {
   const sku = String(value || "").trim().toUpperCase();
+  if (sku.startsWith("TEC-ZEB-") || sku.startsWith("TEST-PROV-")) return sku;
   return sku.startsWith(INVENTORY_SKU_PREFIX) ? sku : `${INVENTORY_SKU_PREFIX}${sku}`;
 }
 
 function isInventoryProduct(product) {
-  return String(product?.sku || "").trim().toUpperCase().startsWith(INVENTORY_SKU_PREFIX);
+  const sku = String(product?.sku || "").trim().toUpperCase();
+  return sku.startsWith(INVENTORY_SKU_PREFIX) || sku.startsWith("TEC-ZEB-") || sku.startsWith("TEST-PROV-");
 }
 
 export function getBogotaDateTime(date = new Date()) {
@@ -126,7 +128,7 @@ export const storageService = {
 
   async addMovement(movement) {
     if (!isInventoryProduct(movement)) {
-      throw new Error("Solo se permiten movimientos de referencias SIM-TON-*");
+      throw new Error("Solo se permiten movimientos de referencias autorizadas (SIM-TON-*, TEC-ZEB-*, TEST-PROV-*)");
     }
     const kardex = this.getKardex();
     const products = this.getProducts();

@@ -197,6 +197,7 @@ export function OutboundFlow({ products, onOrderDispatched, onGoToZebra }) {
       if (res.success) {
         audioService.playSuccess();
         refreshOrders();
+        if (onOrderDispatched) onOrderDispatched();
         setNotification(`🚀 ¡Salida oficial registrada y asentada en Business Central para Pedido #${orderId}!`);
         setTimeout(() => setNotification(""), 5000);
         setSelectedOrderId(null);

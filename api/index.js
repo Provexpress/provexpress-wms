@@ -167,10 +167,29 @@ app.get("/api/products", async (req, res) => {
       }
     });
 
+    // Also incorporate recent app transactions from centralMovementsLog
+    const countOverrides = {};
+    centralMovementsLog.forEach(m => {
+      const sku = (m.sku || "").toUpperCase();
+      const inJournal = journalLines.some(jl => jl.Document_No === m.id);
+      if (!inJournal) {
+        if (m.type === "CONTEO") {
+          countOverrides[sku] = m.quantity;
+        } else if (m.type === "ENTRADA") {
+          stockMap[sku] = (stockMap[sku] || 0) + m.quantity;
+        } else if (m.type === "SALIDA") {
+          stockMap[sku] = (stockMap[sku] || 0) - m.quantity;
+        }
+      }
+    });
+
     const enriched = defaultProds.map(p => {
       const sku = (p.sku || "").toUpperCase();
       const delta = stockMap[sku] || 0;
-      const finalStock = Math.max(0, (Number(p.stock) || 0) + delta);
+      let finalStock = Math.max(0, (Number(p.stock) || 0) + delta);
+      if (countOverrides[sku] !== undefined) {
+        finalStock = countOverrides[sku];
+      }
       return {
         ...p,
         stock: finalStock,
