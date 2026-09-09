@@ -290,7 +290,11 @@ export function ZebraScanner({ products, onMovementRegistered, initialProduct, o
       onMovementRegistered();
 
       // 2. Transmitir a Business Central Cloud
-      const bcRes = await bcService.postMovement({ ...movementData, id: savedMovement?.id });
+      const bcRes = await bcService.postMovement({ 
+        ...movementData, 
+        id: savedMovement?.id,
+        timestamp: savedMovement?.timestamp 
+      });
 
       audioService.playSuccess();
       setSuccessMsg(

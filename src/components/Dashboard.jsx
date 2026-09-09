@@ -16,6 +16,27 @@ export function Dashboard({ products, movements = [], onSelectProduct, onGoToZeb
     return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(val || 0);
   };
 
+  const formatBogotaTimestamp = (raw) => {
+    if (!raw) return "";
+    const str = String(raw).trim();
+    if (str.includes("T") || str.endsWith("Z")) {
+      const d = new Date(str);
+      if (!isNaN(d.getTime())) {
+        return new Intl.DateTimeFormat("es-CO", {
+          timeZone: "America/Bogota",
+          year: "numeric", month: "2-digit", day: "2-digit",
+          hour: "2-digit", minute: "2-digit", second: "2-digit",
+          hour12: true
+        }).format(d);
+      }
+    }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+      const [y, m, d] = str.split("-");
+      return `${d}/${m}/${y}`;
+    }
+    return str;
+  };
+
   const getProductCost = (p) => {
     if (p.unitCost && Number(p.unitCost) > 0) return Number(p.unitCost);
     if (p.totalValue && p.stock && Number(p.stock) > 0) return Math.round(Number(p.totalValue) / Number(p.stock));
@@ -464,7 +485,7 @@ export function Dashboard({ products, movements = [], onSelectProduct, onGoToZeb
                           {isConteo ? "CONTEO FÍSICO" : m.type}: <span className="px-mono" style={{ color: "var(--px-blue)" }}>{m.sku}</span> ({isConteo ? `= ${m.quantity} u` : (isSalida ? `-${m.quantity} u` : `+${m.quantity} u`)})
                         </div>
                         <div style={{ fontSize: "0.68rem", color: "var(--px-muted)" }}>
-                          {m.timestamp} • {m.user || "Terminal Zebra"}
+                          {formatBogotaTimestamp(m.timestamp)} • {m.user || "Terminal Zebra"}
                         </div>
                       </div>
                     </div>

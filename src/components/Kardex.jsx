@@ -13,6 +13,27 @@ export function Kardex({ movements }) {
   const pageSize = 15;
   const [successMessage, setSuccessMessage] = useState("");
 
+  const formatBogotaTimestamp = (raw) => {
+    if (!raw) return "";
+    const str = String(raw).trim();
+    if (str.includes("T") || str.endsWith("Z")) {
+      const d = new Date(str);
+      if (!isNaN(d.getTime())) {
+        return new Intl.DateTimeFormat("es-CO", {
+          timeZone: "America/Bogota",
+          year: "numeric", month: "2-digit", day: "2-digit",
+          hour: "2-digit", minute: "2-digit", second: "2-digit",
+          hour12: true
+        }).format(d);
+      }
+    }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+      const [y, m, d] = str.split("-");
+      return `${d}/${m}/${y}`;
+    }
+    return str;
+  };
+
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     return movements.filter(m => {
@@ -196,7 +217,7 @@ export function Kardex({ movements }) {
                       </span>
                     </td>
                     <td style={{ fontSize: "0.76rem", color: "var(--px-muted)", whiteSpace: "nowrap" }}>
-                      {m.timestamp}
+                      {formatBogotaTimestamp(m.timestamp)}
                     </td>
                     <td style={{ textAlign: "center" }}>
                       {isEntrada && <span className="px-badge px-badge--success">ENTRADA</span>}

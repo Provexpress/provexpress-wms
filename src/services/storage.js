@@ -12,6 +12,19 @@ function isInventoryProduct(product) {
   return String(product?.sku || "").trim().toUpperCase().startsWith(INVENTORY_SKU_PREFIX);
 }
 
+export function getBogotaDateTime(date = new Date()) {
+  return new Intl.DateTimeFormat("es-CO", {
+    timeZone: "America/Bogota",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true
+  }).format(date);
+}
+
 const STORAGE_KEYS = {
   PRODUCTS: "provexpress_products_v2",
   KARDEX: "provexpress_kardex_v3",
@@ -162,7 +175,7 @@ export const storageService = {
 
     const newEntry = {
       id: "MOV-" + Date.now().toString().slice(-6),
-      timestamp: new Date().toLocaleString("es-CO"),
+      timestamp: movement.timestamp || getBogotaDateTime(),
       delta: delta,
       ...movement,
       serialList: movement.serialList || (movement.serialNo ? [movement.serialNo] : [])
@@ -246,7 +259,7 @@ export const storageService = {
       id: "PED-" + Date.now().toString().slice(-6),
       customer: orderData.customer || "Cliente General",
       destination: orderData.destination || "Bodega Central",
-      createdAt: new Date().toLocaleString("es-CO"),
+      createdAt: getBogotaDateTime(),
       status: "BORRADOR",
       pickerUser: this.getUserRole(),
       reviewerUser: "",
@@ -276,7 +289,7 @@ export const storageService = {
       orders[idx].items = pickedItems;
       orders[idx].pickerUser = this.getUserRole();
       if (pickerNotes) orders[idx].notes = pickerNotes;
-      orders[idx].submittedToReviewAt = new Date().toLocaleString("es-CO");
+      orders[idx].submittedToReviewAt = getBogotaDateTime();
       this.saveOrders(orders);
       return orders[idx];
     }
@@ -289,7 +302,7 @@ export const storageService = {
     if (idx >= 0) {
       orders[idx].status = "DEVUELTO";
       orders[idx].rejectionReason = rejectionReason || "Inconsistencias detectadas en revisión";
-      orders[idx].returnedAt = new Date().toLocaleString("es-CO");
+      orders[idx].returnedAt = getBogotaDateTime();
       this.saveOrders(orders);
       return orders[idx];
     }
@@ -314,7 +327,7 @@ export const storageService = {
     // 1. Mark order as DESPACHADO immediately to block concurrent clicks
     order.status = "DESPACHADO";
     order.reviewerUser = reviewer;
-    order.dispatchedAt = new Date().toLocaleString("es-CO");
+    order.dispatchedAt = getBogotaDateTime();
     order.reviewerNotes = reviewerNotes;
     orders[idx] = order;
     this.saveOrders(orders);
@@ -339,7 +352,7 @@ export const storageService = {
         // Asentar inmediatamente en Kardex y descontar stock físico
         const savedMovement = await this.addMovement(movementData);
         // Transmitir salida a Business Central Cloud
-        await bcService.postMovement({ ...movementData, id: savedMovement?.id });
+        await bcService.postMovement({ ...movementData, id: savedMovement?.id, timestamp: savedMovement?.timestamp || getBogotaDateTime() });
       }
     }
 
@@ -482,7 +495,7 @@ export const storageService = {
       id: "PED-PRO-" + Date.now().toString().slice(-4),
       customer: orderData.customer || "Cliente Corporativo",
       commercialAgent: agent,
-      createdAt: new Date().toLocaleString("es-CO"),
+      createdAt: getBogotaDateTime(),
       priority: orderData.priority || "Normal",
       deliveryZone: zone,
       slaHours: sla,
@@ -496,7 +509,7 @@ export const storageService = {
         {
           stage: "COMERCIAL",
           user: agent,
-          time: new Date().toLocaleString("es-CO"),
+          time: getBogotaDateTime(),
           note: `Pedido creado para ${orderData.customer} con destino ${zone} (SLA: ${sla}).`
         }
       ]
@@ -522,7 +535,7 @@ export const storageService = {
     if (details.items) order.items = details.items;
 
     const user = details.user || this.getUserRole();
-    const time = new Date().toLocaleString("es-CO");
+    const time = getBogotaDateTime();
 
     order.timeline.push({
       stage: nextStage,
@@ -553,7 +566,7 @@ export const storageService = {
       tenantId: "618a50d8-4687-488a-8320-4112805ba00d",
       environment: "Production",
       company: "My Company",
-      lastSync: new Date().toLocaleString("es-CO"),
+      lastSync: getBogotaDateTime(),
       isConnected: true
     };
   },

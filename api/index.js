@@ -30,6 +30,20 @@ function getBaseProducts() {
 // In-memory central buffer of all recent transactions across devices
 const centralMovementsLog = [];
 
+// Localized timestamp formatted strictly in Colombia (America/Bogota, UTC-5)
+function getBogotaTimestamp(date = new Date()) {
+  return new Intl.DateTimeFormat("es-CO", {
+    timeZone: "America/Bogota",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true
+  }).format(date);
+}
+
 // =========================================================================
 // BUSINESS CENTRAL CLOUD CONFIGURATION & OAUTH2
 // =========================================================================
@@ -388,7 +402,7 @@ app.post("/api/bc/post-movement", async (req, res) => {
       note: movement.note || desc,
       bin: movement.bin || "COTA-B2",
       user: movement.user || "Operador Bodega",
-      timestamp: new Date().toLocaleString("es-CO"),
+      timestamp: movement.timestamp || getBogotaTimestamp(),
       bcStatus: bcPosted ? "SINCRONIZADO_EN_BC_CLOUD" : "PENDIENTE_BC",
       bcError: bcError
     };
@@ -425,7 +439,7 @@ app.post("/api/kardex/movement", (req, res) => {
     reason: reason || (type === "ENTRADA" ? "Recepción Zebra TC22" : "Despacho Bodega"),
     bin: bin || "COTA-B2",
     operator: operator || "Operador Bodega",
-    timestamp: new Date().toISOString(),
+    timestamp: getBogotaTimestamp(),
     bcStatus: "REGISTRADO_EN_DYNAMICS"
   };
 
