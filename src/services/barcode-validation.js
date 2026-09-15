@@ -46,24 +46,25 @@ export function validateLocalBarcode(products, rawCode) {
     let matchType = null;
 
     // 1. Direct SKU
-    if (sku === scannedCode || sku === canonicalSimTonSku) {
+    if (sku === scannedCode) {
       matchType = "SKU_EXACT";
     }
     // 2. Direct Barcode or Zero-padded/Stripped Barcode
-    else if (
-      (barcode && (barcode === scannedCode || bStripped === scannedStripped || barcode === scannedPad12 || barcode === scannedPad13)) ||
-      (gtin && (gtin === scannedCode || gStripped === scannedStripped || gtin === scannedPad12 || gtin === scannedPad13))
-    ) {
+    else if (barcode && (barcode === scannedCode || bStripped === scannedStripped || barcode === scannedPad12 || barcode === scannedPad13)) {
       matchType = "BARCODE_EXACT";
     }
-    // 3. OEM Code
-    else if (oem && (oem === scannedCode || oem.includes(scannedReference) || scannedCode.includes(oem))) {
+    // 3. Direct GTIN or Zero-padded/Stripped GTIN
+    else if (gtin && (gtin === scannedCode || gStripped === scannedStripped || gtin === scannedPad12 || gtin === scannedPad13)) {
+      matchType = "GTIN_EXACT";
+    }
+    // 4. OEM Code
+    else if (oem && oem === scannedCode) {
       matchType = "OEM_EXACT";
     }
-    // 4. SIM-TON Reference stripped match
+    // 5. SIM-TON Reference stripped match or canonical SKU
     else if (
-      scannedReference &&
-      (sku.replace(/^SIM-TON-/, "") === scannedReference || sku.replace(/^SIM-TON-/, "").replace(/-/g, "") === scannedReference.replace(/-/g, ""))
+      sku === canonicalSimTonSku ||
+      (scannedReference && (sku.replace(/^SIM-TON-/, "") === scannedReference || sku.replace(/^SIM-TON-/, "").replace(/-/g, "") === scannedReference.replace(/-/g, "")))
     ) {
       matchType = "SIM_TON_REFERENCE";
     }
